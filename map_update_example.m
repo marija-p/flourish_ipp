@@ -2,6 +2,8 @@
 % measurement from a fixed altitude.
 % Conventional occupancy grid mapping.
 
+close all;
+
 %% Parameters %%
 % Camera fields of view (FoV)
 planning_parameters.classifier_fov_angle_x = 60;
@@ -26,7 +28,7 @@ matlab_parameters.visualize = 1;
     map_parameters.env_dim_x/map_parameters.resolution, ...
     map_parameters.env_dim_y/map_parameters.resolution);
 % Set position of UAV in the environment (m).
-pos_env = [0, 0, 2];
+pos_env = [0, 0, 6];
 % Create occupancy grid map with unknown values.
 grid_map = 0.5*ones(size(ground_truth_map));
 % Convert to log-odds.

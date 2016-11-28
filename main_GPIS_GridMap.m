@@ -68,4 +68,4 @@ end
 K = feval(cov1{:},hyp1.cov,xtr);
 P= K+ exp(2*hyp1.lik)*eye(length(K));
 
-figure, imshow(P(1:Worldx*Workly,1:Worldx*Workly))
+figure, imshow(P(1:Worldx*Worldy,1:Worldx*Worldy))
