@@ -19,8 +19,8 @@ hyp.lik = 1;
 Ncg = -100;
 
 % Generate prediction grid.
-[mesh_x,mesh_y] = meshgrid(linspace(1,10,100), ...
-    linspace(1,10,100));
+[mesh_x,mesh_y] = meshgrid(linspace(1,11,110), ...
+    linspace(1,11,110));
 Z =  [reshape(mesh_x, numel(mesh_x), 1), reshape(mesh_y, numel(mesh_y), 1)];
 
 % Create random weed map at a lower resolution.
@@ -29,7 +29,7 @@ grid_map = create_poisson_map(NUM_WEEDS, 10, 10);
 
 [mesh_x,mesh_y] = meshgrid(linspace(1,10,10), ...
     linspace(1,10,10));
-X = [reshape(mesh_x, numel(mesh_x), 1), reshape(mesh_y, numel(mesh_y), 1)];
+X = [reshape(mesh_x, numel(mesh_x), 1), reshape(mesh_y, numel(mesh_y), 1)] + 0.5;
 Y = reshape(grid_map,1,[])';
 
 %% Inference %%
@@ -40,19 +40,19 @@ Y = reshape(grid_map,1,[])';
 
 [ymu, ys2 , fmu, fs2] = gp(hyp, inffunc, meanfunc, covfunc, likfunc, ...
     X, Y, Z);
-ymu = reshape(ymu, 100, 100);
+ymu = reshape(ymu, 110, 110);
 
 
 %% Plotting %%
 if (VISUALIZE)
    
    subplot(1,2,1)
-   imagesc(grid_map)
+   imagesc([0.5, 9.5], [0.5, 9.5], grid_map)
    title('Ground truth weed map')
    set(gca,'Ydir','Normal');
     
    subplot(1,2,2)
-   imagesc(ymu)
+   imagesc([0.05, 99.5], [0.05, 99.5], ymu)
    title('Interpolated weed map')
    colorbar
    set(gca,'Ydir','Normal');
