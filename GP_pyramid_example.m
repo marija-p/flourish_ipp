@@ -25,7 +25,7 @@ Ncg = -100;
 % Generate prediction grid.
 % Prediction it will be at z=1, z=2 and z=3
 [mesh_x,mesh_y,mesh_z] = meshgrid(linspace(1,DimX,100), ...
-    linspace(1,DimY,100),[1:3]);
+    linspace(1,DimY,100),[1:4]);
 Z =  [reshape(mesh_x, numel(mesh_x), 1), reshape(mesh_y, numel(mesh_y), 1), reshape(mesh_z, numel(mesh_z), 1)];
 
 % Create random weed map at a lower resolution.
@@ -60,8 +60,8 @@ Y = reshape(grid_map,[],1);
 
 [ymu, ys2 , fmu, fs2] = gp(hyp, inffunc, meanfunc, covfunc, likfunc, ...
     X, Y, Z);
-ymu = reshape(ymu, 100, 100,3);
-
+ymu = reshape(ymu, 100, 100,4);
+ys = sqrt(reshape(ys2, 100, 100,4));
 
 %% Plotting %%
 if (VISUALIZE)
@@ -97,12 +97,38 @@ if (VISUALIZE)
    c = colorbar;
    caxis([0, 1])
    set(gcf, 'Position', [-1567, 331, 1247, 507]);
-   
-   figure
-   imagesc(ymu(:,:,2))
-   title('Interpolated weed map at not observed z')
-   colorbar
-   set(gca,'Ydir','Normal');
-   
+  
+   for i=[2,4]
+       figure
+       imagesc(ymu(:,:,i))
+       title('Interpolated weed map at not observed z')
+       colorbar
+       set(gca,'Ydir','Normal');
 
+
+       figure
+       imagesc(2*ys(:,:,i))
+       title('Interpolated weed map at not observed z')
+       colorbar
+       set(gca,'Ydir','Normal');
+   end
 end
+
+%%Covariances from training
+K = feval(covfunc{:},hyp.cov,X);
+KplusR = K+ exp(2*hyp.lik)*eye(length(K));
+KplusR_inv = eye(size(K))/KplusR ;
+
+%Covariances from testing
+for i=[1:4]
+    z_ind = [(i-1)*(DimX*DimY)+1:i*(DimX*DimY)]';
+    kss = feval(covfunc{:},hyp.cov, Z(z_ind),'diag');
+    Kst = feval(covfunc{:},hyp.cov, Z(z_ind), X) ;
+    P{i} = diag(kss) - Kst*KplusR_inv*Kst';
+
+    trace(P{i})
+    if (VISUALIZE)
+        figure, imagesc(P{i})
+    end
+end
+
