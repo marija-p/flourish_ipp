@@ -65,12 +65,14 @@ ymu = reshape(ymu, 100, 100,3);
 
 %% Plotting %%
 if (VISUALIZE)
+    
+   % Figure 1 %
    figure
    subplot(1,2,1)
    imagesc(grid_map(:,:,1))
    title('Ground truth weed map')
    set(gca,'Ydir','Normal');
-    
+   
    subplot(1,2,2)
    imagesc(ymu(:,:,1))
    title('Interpolated weed map')
@@ -82,6 +84,7 @@ if (VISUALIZE)
    set(gcf, 'Position', [-1567, 331, 1247, 507]);
 
 
+   % Figure 2 %
    figure
    subplot(1,2,1)
    imagesc(grid_map(:,:,2))
@@ -98,10 +101,12 @@ if (VISUALIZE)
    caxis([0, 1])
    set(gcf, 'Position', [-1567, 331, 1247, 507]);
    
+   % Figure 3 %
    figure
    imagesc(ymu(:,:,2))
    title('Interpolated weed map at not observed z')
-   colorbar
+   c = colorbar;
+   caxis([0, 1])
    set(gca,'Ydir','Normal');
    
 

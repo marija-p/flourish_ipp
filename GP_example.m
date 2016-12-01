@@ -47,12 +47,12 @@ ymu = reshape(ymu, 110, 110);
 if (VISUALIZE)
    
    subplot(1,2,1)
-   imagesc([0.5, 9.5], [0.5, 9.5], grid_map)
+   imagesc([1.5, 10.5], [1.5, 10.5], grid_map)
    title('Ground truth weed map')
    set(gca,'Ydir','Normal');
     
    subplot(1,2,2)
-   imagesc([0.05, 99.5], [0.05, 99.5], ymu)
+   imagesc([1.05, 110.5], [1.05, 110.5], ymu)
    title('Interpolated weed map')
    colorbar
    set(gca,'Ydir','Normal');

@@ -28,7 +28,7 @@ matlab_parameters.visualize = 1;
     map_parameters.env_dim_x/map_parameters.resolution, ...
     map_parameters.env_dim_y/map_parameters.resolution);
 % Set position of UAV in the environment (m).
-pos_env = [0, 0, 6];
+pos_env = [0, 0, 3];
 % Create occupancy grid map with unknown values.
 grid_map = 0.5*ones(size(ground_truth_map));
 % Convert to log-odds.
@@ -46,17 +46,8 @@ if (matlab_parameters.visualize)
     set(gca,'Ydir','Normal');
 end
 
-% Look at currently observed values based on FoV (camera footprint).
-submap_edge_size = ...
-    get_submap_edge_size(pos_env(3), map_parameters, planning_parameters);
-submap_coordinates = ...
-    get_submap_coordinates(pos_env, submap_edge_size, map_parameters);
-submap = ground_truth_map(submap_coordinates.yd:submap_coordinates.yu, ...
-    submap_coordinates.xl:submap_coordinates.xr);
-
-% Update occupancy grid with received measurements and classifier model.
-grid_map = ...
-    update_map(pos_env, submap, submap_coordinates, grid_map, planning_parameters);
+[grid_map] = take_measurement_at_point(pos_env, grid_map, ground_truth_map, ...
+    map_parameters, planning_parameters);
 
 if (matlab_parameters.visualize)
     subplot(1,3,3)
