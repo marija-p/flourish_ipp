@@ -1,8 +1,12 @@
 clear all; close all; clc;
 
-
 %% Parameters %%
+
+% Environment
 num_weeds = 15;
+% Dimensions [m]
+dim_x_env = 10;
+dim_y_env = 10;
 
 % Camera fields of view (FoV)
 planning_parameters.classifier_fov_angle_x = 60;
@@ -13,55 +17,49 @@ planning_parameters.nonweed_coeffs = [0.000233716475095785, -0.00134865900383140
 
 % Map resolution [m/cell]
 map_parameters.resolution = 0.5;
-% Map dimensions (from ground truth)
-map_parameters.env_dim_x = 10;
-map_parameters.env_dim_y = 10;
-% Grid dimensions
-dim_x = map_parameters.env_dim_x/map_parameters.resolution;
-dim_y = map_parameters.env_dim_y/map_parameters.resolution;
+% Map dimensions [cells]
+map_parameters.dim_x = dim_x_env/map_parameters.resolution;
+map_parameters.dim_y = dim_y_env/map_parameters.resolution;
+dim_x = map_parameters.dim_x;
+dim_y = map_parameters.dim_y;
+% Prediction map dimensions [cells]
 predict_dim_x = dim_x*1;
 predict_dim_y = dim_y*1;
 
 matlab_parameters.visualize = 1;
 
-% GP regression parameters
+% Gaussian Process
 cov_func = {'covMaterniso', 3};
 lik_func = @likGauss;
 inf_func = @infExact;
 mean_func = @meanConst;
 % Hyperparameters
 hyp.mean = 0.5;
-hyp.cov = [-1,-0.76]; %hyperpar with low correlation %[0.7337;-1.0489];
-%hyp.cov = [0.1;-0.1];
-%hyp.cov = log(hyp.cov);
-hyp.lik = -0.7;%-1.5970; %roughly covers from 0 to 1 in 2sigma bounds
-% Number of conjugate gradient steps
-N_cg = -100;
+hyp.cov = [-1,-0.76]; % With low correlation
+hyp.lik = -0.7;       % Roughly covers from 0 to 1 in 2*sigma bounds
 
 
 %% Data %%
 
-% Generate ground truth grid.
+% Generate (binary) ground truth map.
 ground_truth_map = create_poisson_map(num_weeds, dim_x, dim_y);
-[mesh_x,mesh_y] = meshgrid(linspace(1,dim_x,dim_x), ...
-    linspace(1,dim_y,dim_y));
+[mesh_x,mesh_y] = meshgrid(linspace(1,dim_x,dim_x), linspace(1,dim_y,dim_y));
 X_ref = [reshape(mesh_x, numel(mesh_x), 1), reshape(mesh_y, numel(mesh_y), 1)];
 
-% Generate prediction grid.
-[mesh_x,mesh_y] = meshgrid(linspace(1,dim_x,predict_dim_x), ...
-    linspace(1,dim_y,predict_dim_y));
+% Generate prediction map.
+[mesh_x,mesh_y] = meshgrid(linspace(1,predict_dim_x,predict_dim_x), ...
+    linspace(1,predict_dim_y,predict_dim_y));
 Z =  [reshape(mesh_x, numel(mesh_x), 1), reshape(mesh_y, numel(mesh_y), 1)];
 
-% Generate occupancy grid.
-grid_map.m = 0.5*ones(size(ground_truth_map));
-%grid_map = prob_to_logodds(grid_map); %TODO remove this
-entropy = get_map_entropy(grid_map.m);
-disp(['Map entropy before measurements = ', num2str(entropy)])
+% Generate grid map.
+grid_map_prior.m = 0.5*ones(size(ground_truth_map));
 
 
 %% Training %%
 % Optimise hyperparameters.
 % *** TODO (M): Not sure how to do this at the moment. ***
+% Number of conjugate gradient steps
+%N_cg = -100;
 %Y_ref = reshape(ground_truth_map, 1, [])';
 %[hyp, ~, ~] = ...
 %    minimize(hyp, 'gp', N_cg, inf_func, mean_func, cov_func, lik_func, X_ref, Y_ref);
@@ -70,8 +68,8 @@ disp(['Map entropy before measurements = ', num2str(entropy)])
 %% Measurement and Inference %%
 % Generate prior map. 
 
-%% Without performing inference we could just calculate the covariance.
-
+%% Compute covariance (Method 1 - no inference).
+%%%% ASK ABOUT THIS %%%%%%%%%
 % sn2=exp(2*hyp.lik);
 % K = feval(cov_func{:},hyp.cov,X_ref);
 %KplusR = K+ sn2*eye(length(K));
@@ -80,16 +78,16 @@ disp(['Map entropy before measurements = ', num2str(entropy)])
 %Ks = feval(cov_func{:}, hyp.cov, X_ref, Z);
 %grid_map.P = diag(kss)- Ks'*KplusR_inv*Ks;
 
-%% Performing inference.
- Y = reshape(grid_map.m,[],1);
- [ymu, ys, fmu, fs2, ~ ,post] = gp(hyp, inf_func, mean_func, cov_func, lik_func, ...
-     X_ref, Y, Z);
- ymu = reshape(ymu, predict_dim_y, predict_dim_x);
- ys = reshape(ys, predict_dim_y, predict_dim_x);
+%% Compute covariance (Method 2 - with inference).
+Y = reshape(grid_map_prior.m,[],1);
+% ymu, ys: mean and covariance for output
+% fmu, fs: mean and covariance for latent variables
+% post: struct representation of the (approximate) posterior
+[ymu, ys, fmu, fs, ~ , post] = gp(hyp, inf_func, mean_func, cov_func, lik_func, ...
+    X_ref, Y, Z);
+ymu = reshape(ymu, predict_dim_y, predict_dim_x);
 
-% we want post to calculate the covariance using Cholesky in the same way as the GPML
-%Get Covariance
-alpha = post.alpha; 
+alpha = post.alpha;
 L = post.L; 
 sW = post.sW; 
 kss = feval(cov_func{:}, hyp.cov, Z, 'diag');
@@ -97,74 +95,61 @@ Ks = feval(cov_func{:}, hyp.cov, X_ref, Z);
 Lchol = isnumeric(L) && all(all(tril(L,-1)==0)&diag(L)'>0&isreal(diag(L))');
 if Lchol    % L contains chol decomp => use Cholesky parameters (alpha,sW,L)
    V  = L'\(sW.*Ks);
-   grid_map.P = diag(kss) - V'*V;                       % predictive variances
+   grid_map_prior.P = diag(kss) - V'*V;                       % predictive variances
   else                % L is not triangular => use alternative parametrisation
   if isnumeric(L), LKs = L*(Ks); else LKs = L(Ks); end    % matrix or callback
-  grid_map.P = diag(kss) + Ks'*LKs;                    % predictive variances
+  grid_map_prior.P = diag(kss) + Ks'*LKs;                    % predictive variances
 end
 
-%% For ploting.
-Ysigma = sqrt(diag(grid_map.P)'); 
-grid_map_2sigma_prior = reshape(2*Ysigma,predict_dim_y,predict_dim_x);
-
-% Take a measurement in the centre.
-pos_env = [0, 0, 4];
-meas_map = take_measurement_at_point(pos_env, grid_map.m, ground_truth_map, ...
-    map_parameters, planning_parameters);
+% Extract variance map.
+Y_sigma = sqrt(diag(grid_map_prior.P)'); 
+P_prior = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
 
 % Take a measurement in the centre and fuse them.
 pos_env = [0, 0, 4];
-grid_map = take_measurement_at_point(pos_env, grid_map.m, ground_truth_map, ...
-    map_parameters, planning_parameters, grid_map.P);
-Ymean = reshape(grid_map.m,1,[])'; 
-Ysigma = sqrt(diag(grid_map.P)'); 
-grid_map_2sigma = reshape(2*Ysigma,predict_dim_y,predict_dim_x);
+grid_map_post = take_measurement_at_point(pos_env, grid_map_prior, ground_truth_map, ...
+    map_parameters, planning_parameters);
+Y_sigma = sqrt(diag(grid_map_post.P)'); 
+P_post = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
 
 
 %% Plotting %%
 if (matlab_parameters.visualize)
-   
-   subplot(1,4,1)
-   imagesc([1.5, 10.5], [1.5, 10.5], ground_truth_map)
-   caxis([0, 1])
-   title('Ground truth weed map')
-   set(gca,'Ydir','Normal');
     
-   subplot(1,4,2)
-   imagesc([1.5, 10.5], [1.5, 10.5], meas_map)
-   caxis([0, 1])
-   title('Current measurements')
-   set(gca,'Ydir','Normal');
-   
-   subplot(1,4,3)
-   imagesc([1.5, 10.5], [1.5, 10.5], ymu)
-   caxis([0, 1])
-   title('Prior map')
-   set(gca,'Ydir','Normal');
-
-   subplot(1,4,4)
-   imagesc([1.5, 10.5], [1.5, 10.5], grid_map.m)
-   caxis([0, 1])
-   title('Updated map')
-   set(gca,'Ydir','Normal');
-   
-   c = colorbar;
-   set(gcf, 'Position', [58, 328, 1863, 485]);
-
-
-    figure() 
-    subplot(1,2,1)
-    imagesc([1.5, 10.5], [1.5, 10.5],grid_map_2sigma_prior)
-    title('Updated Map Variance')
-    set(gca,'Ydir','Normal');
-    c = colorbar;
+    % Means
+    figure;
+    subplot(1,3,1)
+    imagesc(ground_truth_map)
     caxis([0, 1])
+    title('Ground truth map')
+    set(gca,'Ydir', 'Normal');
+    
+    subplot(1,3,2)
+    imagesc(ymu)
+    caxis([0, 1])
+    title('Mean - prior (ymu)')
+    set(gca,'Ydir','Normal');
+    
+    subplot(1,3,3)
+    imagesc(grid_map_post.m)
+    caxis([0, 1])
+    title('Mean - posterior (grid\_map\_post)')
+    set(gca,'Ydir','Normal');
+    c1 = colorbar;
+    set(gcf, 'Position', [58, 328, 1863, 485]);
+    
+    % Variances
+    figure;
+    subplot(1,2,1)
+    contourf(P_prior)
+    title('Prior variance')
+    set(gca,'Ydir','Normal');
     
     subplot(1,2,2)
-    imagesc([1.5, 10.5], [1.5, 10.5],grid_map_2sigma)
-    title('Updated Map Variance')
+    contourf(P_post)
+    title('Posterior variance')
     set(gca,'Ydir','Normal');
-    c = colorbar;
-    caxis([0, 1])
-
+    c2 = colorbar;
+    set(gcf, 'Position', [752, 615, 1001, 405])
+    
 end
