@@ -4,7 +4,7 @@ function grid_map = ...
 % Updates grid map at a UAV position using measurements
 % received using height-dependent sensor model.
 
-%% Update occupancy grid map - weeds.
+%% Update grid map - weeds.
 % Find weeds, extract indices, and update probabilities.
 [w_win_j, w_win_i] = find(submap == 1);
 
@@ -27,7 +27,7 @@ if (~isempty(w_win_i))
     var(w_ind)=varw;
 end
 
-%% Update occupancy grid map - nonweeds.
+%% Update grid map - nonweeds.
 % Find nonweeds, extract indices, and update probabilities.
 [nw_win_j, nw_win_i] = find(submap == 0);
 
@@ -44,7 +44,6 @@ if (~isempty(nw_win_i))
 end
 
 %% Perform correlated fusion.
-
 [grid_map.m, grid_map.P] = fuse_measurements(grid_map.m, grid_map.P, ...
     submap,var, w_ind_global);
 
