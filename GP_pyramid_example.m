@@ -7,6 +7,10 @@ NUM_WEEDS = 15;
 PYRAMID = 2;
 DimX = 20;
 DimY = 20;
+DimZ = 2;
+GRIDSZX = 100;
+GRIDSZY = 100;
+ZLEVELS = 4;
 
 % Set up GP parameters.
 %covfunc = 'covSEiso';
@@ -23,9 +27,9 @@ hyp.lik = 1;
 Ncg = -100;
 
 % Generate prediction grid.
-% Prediction it will be at z=1, z=2 and z=3
-[mesh_x,mesh_y,mesh_z] = meshgrid(linspace(1,DimX,100), ...
-    linspace(1,DimY,100),[1:4]);
+% Prediction it will be at z=1:ZLEVELS
+[mesh_x,mesh_y,mesh_z] = meshgrid(linspace(1,DimX,GRIDSZX), ...
+    linspace(1,DimY,GRIDSZY),[1:ZLEVELS]);
 Z =  [reshape(mesh_x, numel(mesh_x), 1), reshape(mesh_y, numel(mesh_y), 1), reshape(mesh_z, numel(mesh_z), 1)];
 
 % Create random weed map at a lower resolution.
@@ -33,7 +37,7 @@ grid_map(:,:,1) = create_poisson_map(NUM_WEEDS, DimX, DimY);
 [weed_coordinates_y, weed_coordinates_x] = find(grid_map == 1);
 
 %Create meshgrid with z In training data first layer is at z=1 and second
-%layer is at z=3
+%layer is at z=3 DimZ = 2 layer 1 and 3
 [mesh_x,mesh_y,mesh_z] = meshgrid(linspace(1,DimX,DimX), ...
     linspace(1,DimY,DimY),[1,3]);
 
@@ -58,10 +62,12 @@ Y = reshape(grid_map,[],1);
 [hyp, ~, ~] = ...
     minimize(hyp, 'gp', Ncg, inffunc, meanfunc, covfunc, likfunc, X, Y); 
 
+save('trainedGP.mat','hyp', 'inffunc', 'meanfunc', 'covfunc', 'likfunc', 'X', 'Y', 'DimX', 'DimY', 'DimZ');
+
 [ymu, ys2 , fmu, fs2] = gp(hyp, inffunc, meanfunc, covfunc, likfunc, ...
     X, Y, Z);
-ymu = reshape(ymu, 100, 100,4);
-ys = sqrt(reshape(ys2, 100, 100,4));
+ymu = reshape(ymu, GRIDSZX, GRIDSZY, ZLEVELS);
+ys = sqrt(reshape(ys2, GRIDSZX, GRIDSZY, ZLEVELS));
 
 %% Plotting %%
 if (VISUALIZE)
@@ -128,8 +134,11 @@ for i=[1:4]
     kss = feval(covfunc{:},hyp.cov, Z(z_ind),'diag');
     Kst = feval(covfunc{:},hyp.cov, Z(z_ind), X) ;
     P{i} = diag(kss) - Kst*KplusR_inv*Kst';
-
-    trace(P{i})
+    
+    disp('    z    trace of P ')
+    disp([i, trace(P{i})])
+    
+    
     if (VISUALIZE)
         figure, imagesc(P{i})
     end
