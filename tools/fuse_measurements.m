@@ -1,5 +1,6 @@
-function [xf,Pf] = fuse_measurements(xa,P,za,Ra, ind)
-% Obtain maximum aposteriori estimate using Bayesian Fusion
+function [xf,Pf] = fuse_measurements(xa,P,za,Ra,ind)
+% Obtain maximum aposteriori estimate using Bayesian Fusion.
+%
 % Inputs:
 % x: prior mean
 % P: prior covariance
@@ -23,10 +24,12 @@ R = diag(reshape(Ra,[],1));
 
 H = zeros(r*s,m*n);
 j=1;
+
 for i=1:length(ind)
     H(j,ind(i)) = 1;
     j=j+1;
 end
+
 [x,Pf] = KF_update_cholesky(x,P,z-H*x,R,H);
 
 xf = reshape(x,m,n);

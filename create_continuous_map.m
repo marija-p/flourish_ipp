@@ -12,7 +12,7 @@ function [ground_truth_map] = create_continuous_map(dim_x, dim_y, cluster_radius
 % Adapted from:
 % https://people.smp.uq.edu.au/DirkKroese/ps/MCSpatial.pdf
 
-visualize = 1;
+visualize = 0;
 
 % Vegetation cover range (%).
 % veg_cover ∈ [veg_cover_min, veg_cover_max]
