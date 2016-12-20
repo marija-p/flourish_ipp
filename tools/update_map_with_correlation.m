@@ -12,6 +12,9 @@ var = ones(size(submap))*sensor_model(pos_env(3));
         [submap_coordinates.yd:submap_coordinates.yu]);
 submap_ind = sub2ind(size(grid_map.m),reshape(submap_ind_y,[],1),reshape(submap_ind_x,[],1));
 
+% Downsample resolution based on height
+%submap = get_downsampled_submap(height, submap, map_parameters);
+
 %% Perform correlated fusion.
 [grid_map.m, grid_map.P] = fuse_measurements(grid_map.m, grid_map.P, ...
     submap, var, submap_ind);
