@@ -19,8 +19,8 @@ map_parameters.env_dim_y = 10;
 % Grid dimensions
 dim_x = map_parameters.env_dim_x/map_parameters.resolution;
 dim_y = map_parameters.env_dim_y/map_parameters.resolution;
-predict_dim_x = dim_x*10;
-predict_dim_y = dim_y*10;
+predict_dim_x = dim_x*1;
+predict_dim_y = dim_y*1;
 
 matlab_parameters.visualize = 1;
 
@@ -53,7 +53,7 @@ Z =  [reshape(mesh_x, numel(mesh_x), 1), reshape(mesh_y, numel(mesh_y), 1)];
 
 % Generate occupancy grid.
 grid_map = 0.5*ones(size(ground_truth_map));
-grid_map = prob_to_logodds(grid_map);
+%grid_map = prob_to_logodds(grid_map); %TODO remove this
 entropy = get_map_entropy(grid_map);
 disp(['Map entropy before measurements = ', num2str(entropy)])
 
@@ -67,6 +67,18 @@ disp(['Map entropy before measurements = ', num2str(entropy)])
 
 
 %% Measurement and Inference %%
+% Generate prior map. 
+% Perform inference.
+%Y = reshape(logodds_to_prob(grid_map),1,[])'; %TODO remove this
+Y = reshape(grid_map,1,[])';
+[ymu, ys, fmu, fs2] = gp(hyp, inf_func, mean_func, cov_func, lik_func, ...
+    X_ref, Y, Z);
+ymu = reshape(ymu, predict_dim_x, predict_dim_y);
+ys = reshape(ys, predict_dim_x, predict_dim_y);
+
+%Get Covariance
+
+
 
 % Take a measurement in the centre.
 pos_env = [0, 0, 4];
