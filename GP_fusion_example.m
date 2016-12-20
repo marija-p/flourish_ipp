@@ -3,17 +3,14 @@ clear all; close all; clc;
 %% Parameters %%
 
 % Environment
-num_weeds = 15;
+cluster_radius = 3;
 % Dimensions [m]
 dim_x_env = 10;
 dim_y_env = 10;
 
 % Camera fields of view (FoV)
-planning_parameters.classifier_fov_angle_x = 60;
-planning_parameters.classifier_fov_angle_y = 60;
-% Sensor models: polynomial coefficients
-planning_parameters.weed_coeffs = [-0.000256704980842912, -0.00273180076628354, 0.912988505747127];
-planning_parameters.nonweed_coeffs = [0.000233716475095785, -0.00134865900383140, 0.130114942528736];
+planning_parameters.sensor_fov_angle_x = 60;
+planning_parameters.sensor_fov_angle_y = 60;
 
 % Map resolution [m/cell]
 map_parameters.resolution = 0.5;
@@ -35,14 +32,14 @@ inf_func = @infExact;
 mean_func = @meanConst;
 % Hyperparameters
 hyp.mean = 0.5;
-hyp.cov = [-1,-0.76]; % With low correlation
-hyp.lik = -0.7;       % Roughly covers from 0 to 1 in 2*sigma bounds
+hyp.cov = [-1,-0.76];   % With low correlation
+hyp.lik = -0.7;         % Roughly covers from 0 to 1 in 2*sigma bounds
 
 
 %% Data %%
 
 % Generate (binary) ground truth map.
-ground_truth_map = create_poisson_map(num_weeds, dim_x, dim_y);
+ground_truth_map = create_continuous_map(dim_x, dim_y, cluster_radius);
 [mesh_x,mesh_y] = meshgrid(linspace(1,dim_x,dim_x), linspace(1,dim_y,dim_y));
 X_ref = [reshape(mesh_x, numel(mesh_x), 1), reshape(mesh_y, numel(mesh_y), 1)];
 
@@ -69,7 +66,6 @@ grid_map_prior.m = 0.5*ones(size(ground_truth_map));
 % Generate prior map. 
 
 %% Compute covariance (Method 1 - no inference).
-%%%% ASK ABOUT THIS %%%%%%%%%
 % sn2=exp(2*hyp.lik);
 % K = feval(cov_func{:},hyp.cov,X_ref);
 %KplusR = K+ sn2*eye(length(K));
