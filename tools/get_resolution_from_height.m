@@ -1,9 +1,9 @@
-function factor = get_resolution_from_height(height)
+function factor = get_resolution_from_height(altitude)
 
-if height > 5
+if altitude > 4
     factor = 2;
-elseif height < 1
-     factor = 1;
+elseif altitude < 1
+    factor = 1;
 else
-    factor = height/2;
+    factor = altitude/2;
 end
