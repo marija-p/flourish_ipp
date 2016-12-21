@@ -26,7 +26,7 @@ predict_dim_y = dim_y*1;
 matlab_parameters.visualize = 1;
 
 % Gaussian Process
-cov_func = {'covMaterniso', 3};
+cov_func = {'covMaterniso', 5};
 lik_func = @likGauss;
 inf_func = @infExact;
 mean_func = @meanConst;
@@ -34,7 +34,8 @@ mean_func = @meanConst;
 hyp.mean = 0.5;
 %hyp.cov = [-1,-0.76];   % With low correlation
 %hyp.lik = -0.7;
-hyp.cov = [-1, -0.76];
+cov = [0.5, 2];
+hyp.cov = log(cov);
 hyp.lik = -0.7;
 
 
