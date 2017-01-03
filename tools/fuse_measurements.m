@@ -34,4 +34,8 @@ end
 
 xf = reshape(x,m,n);
 
+% Debugging
+disp(['Matrix trace before update: ', num2str(trace(P))])
+disp(['Matrix trace after update: ', num2str(trace(Pf))])
+
 end
