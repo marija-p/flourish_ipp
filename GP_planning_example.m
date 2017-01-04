@@ -26,22 +26,19 @@ predict_dim_y = dim_y*1;
 matlab_parameters.visualize = 1;
 
 % Gaussian Process
-cov_func = {'covMaterniso', 5};
+cov_func = {'covMaterniso', 3};
 lik_func = @likGauss;
 inf_func = @infExact;
 mean_func = @meanConst;
 % Hyperparameters
 hyp.mean = 0.5;
-%hyp.cov = [-1,-0.76];   % With low correlation
-%hyp.lik = -0.7;
-cov = [0.5, 1];
-hyp.cov = log(cov);
-hyp.lik = -0.7;
+hyp.cov = [-1,-0.76];   % With low correlation
+hyp.lik = -0.7;         % Roughly covers from 0 to 1 in 2*sigma bounds
 
 
 %% Data %%
 
-% Generate (continuous) ground truth map.
+% Generate (binary) ground truth map.
 ground_truth_map = create_continuous_map(dim_x, dim_y, cluster_radius);
 [mesh_x,mesh_y] = meshgrid(linspace(1,dim_x,dim_x), linspace(1,dim_y,dim_y));
 X_ref = [reshape(mesh_x, numel(mesh_x), 1), reshape(mesh_y, numel(mesh_y), 1)];
@@ -53,7 +50,7 @@ Z =  [reshape(mesh_x, numel(mesh_x), 1), reshape(mesh_y, numel(mesh_y), 1)];
 
 % Generate grid map.
 grid_map_prior.m = 0.5*ones(size(ground_truth_map));
-%grid_map_prior.m = ground_truth_map;
+
 
 %% Training %%
 % Optimise hyperparameters.
@@ -100,11 +97,11 @@ if Lchol    % L contains chol decomp => use Cholesky parameters (alpha,sW,L)
   grid_map_prior.P = diag(kss) + Ks'*LKs;                    % predictive variances
 end
 
-% Extract variance map (diagonal elements).
+% Extract variance map.
 Y_sigma = sqrt(diag(grid_map_prior.P)'); 
 P_prior = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
 
-% Take a measurement in the centre and fuse it.
+% Take a measurement in the centre and fuse them.
 pos_env = [0, 0, 4];
 grid_map_post = take_measurement_at_point(pos_env, grid_map_prior, ground_truth_map, ...
     map_parameters, planning_parameters);
@@ -141,13 +138,11 @@ if (matlab_parameters.visualize)
     figure;
     subplot(1,2,1)
     contourf(P_prior)
-    caxis([0, 1])
     title('Prior variance')
     set(gca,'Ydir','Normal');
     
     subplot(1,2,2)
     contourf(P_post)
-    caxis([0, 1])
     title('Posterior variance')
     set(gca,'Ydir','Normal');
     c2 = colorbar;

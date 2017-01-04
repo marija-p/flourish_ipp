@@ -34,7 +34,7 @@ mean_func = @meanConst;
 hyp.mean = 0.5;
 %hyp.cov = [-1,-0.76];   % With low correlation
 %hyp.lik = -0.7;
-cov = [0.5, 1];
+cov = [0.5, 2];
 hyp.cov = log(cov);
 hyp.lik = -0.7;
 
@@ -53,7 +53,7 @@ Z =  [reshape(mesh_x, numel(mesh_x), 1), reshape(mesh_y, numel(mesh_y), 1)];
 
 % Generate grid map.
 grid_map_prior.m = 0.5*ones(size(ground_truth_map));
-%grid_map_prior.m = ground_truth_map;
+
 
 %% Training %%
 % Optimise hyperparameters.
@@ -104,7 +104,7 @@ end
 Y_sigma = sqrt(diag(grid_map_prior.P)'); 
 P_prior = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
 
-% Take a measurement in the centre and fuse it.
+% Take a measurement in the centre and fuse them.
 pos_env = [0, 0, 4];
 grid_map_post = take_measurement_at_point(pos_env, grid_map_prior, ground_truth_map, ...
     map_parameters, planning_parameters);
