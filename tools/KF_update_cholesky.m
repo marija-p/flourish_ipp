@@ -18,7 +18,7 @@ S = (S+S')*0.5; % ensure S is symmetric
 
 Si=inv(S);
 x = x + PHt*Si*v; % update 
-P = P - PHt*Si*PHt';
+P = P - PHt*Si*H*P;
 
 % Sc  = chol(S);  % note: S = Sc'*Sc
 % Sci = inv(Sc);  % note: inv(S) = Sci*Sci'

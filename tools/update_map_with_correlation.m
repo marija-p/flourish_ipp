@@ -19,5 +19,8 @@ submap_ind = sub2ind(size(grid_map.m),reshape(submap_ind_y,[],1),reshape(submap_
 [grid_map.m, grid_map.P] = fuse_measurements(grid_map.m, grid_map.P, ...
     submap, var, submap_ind);
 
+%% Perform GP inference.
+%[grid_map.m, grid_map.P] = inferece_with_gp(grid_map.m, grid_map.P, ...
+%    submap, var, submap_ind);
 end
 

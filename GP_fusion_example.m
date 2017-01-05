@@ -26,7 +26,7 @@ predict_dim_y = dim_y*1;
 matlab_parameters.visualize = 1;
 
 % Gaussian Process
-cov_func = {'covMaterniso', 5};
+cov_func = {'covMaterniso', 3};
 lik_func = @likGauss;
 inf_func = @infExact;
 mean_func = @meanConst;
@@ -34,9 +34,10 @@ mean_func = @meanConst;
 hyp.mean = 0.5;
 %hyp.cov = [-1,-0.76];   % With low correlation
 %hyp.lik = -0.7;
-cov = [0.5, 2];
-hyp.cov = log(cov);
-hyp.lik = -0.7;
+hyp.cov =  [0.01 0.5];%[1, -0.76];
+%cov = [0.5, 2];
+%hyp.cov = log(cov);
+hyp.lik = -0.5; %-0.3; %-0.3
 
 
 %% Data %%
@@ -89,7 +90,7 @@ ymu = reshape(ymu, predict_dim_y, predict_dim_x);
 alpha = post.alpha;
 L = post.L; 
 sW = post.sW; 
-kss = feval(cov_func{:}, hyp.cov, Z, 'diag');
+kss = real(feval(cov_func{:}, hyp.cov, Z, 'diag'));
 Ks = feval(cov_func{:}, hyp.cov, X_ref, Z);
 Lchol = isnumeric(L) && all(all(tril(L,-1)==0)&diag(L)'>0&isreal(diag(L))');
 if Lchol    % L contains chol decomp => use Cholesky parameters (alpha,sW,L)
@@ -153,4 +154,7 @@ if (matlab_parameters.visualize)
     c2 = colorbar;
     set(gcf, 'Position', [752, 615, 1001, 405])
     
+    figure, surf(grid_map_post.m);
+    figure, surf(P_post);
+   
 end
