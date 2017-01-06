@@ -8,10 +8,6 @@ cluster_radius = 3;
 dim_x_env = 10;
 dim_y_env = 10;
 
-% Camera fields of view (FoV)
-planning_parameters.sensor_fov_angle_x = 60;
-planning_parameters.sensor_fov_angle_y = 60;
-
 % Map resolution [m/cell]
 map_parameters.resolution = 0.5;
 % Map dimensions [cells]
@@ -62,6 +58,7 @@ grid_map_prior.m = ground_truth_map;
 
 %% Inference %%
 Y = reshape(grid_map_prior.m(training_ind_y,training_ind_x),[],1);
+
 % ymu, ys: mean and covariance for output
 % fmu, fs: mean and covariance for latent variables
 % post: struct representation of the (approximate) posterior
@@ -70,6 +67,7 @@ Y = reshape(grid_map_prior.m(training_ind_y,training_ind_x),[],1);
 ymu = reshape(ymu, predict_dim_y, predict_dim_x);
 ys = reshape(ys, predict_dim_y, predict_dim_x);
 
+% Calculate covariance.
 alpha = post.alpha;
 L = post.L; 
 sW = post.sW; 
