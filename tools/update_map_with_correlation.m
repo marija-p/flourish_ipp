@@ -2,7 +2,7 @@ function grid_map = ...
     update_map_with_correlation(pos_env, submap, grid_map, submap_coordinates, ...
     planning_parameters)
 % Updates grid map at a UAV position using measurements
-% received using height-dependent sensor model.
+% received with height-dependent sensor model.
 
 %% Update grid map.
 

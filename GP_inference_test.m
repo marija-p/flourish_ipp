@@ -74,14 +74,14 @@ sW = post.sW;
 kss = real(feval(cov_func{:}, hyp.cov, Z, 'diag'));
 Ks = feval(cov_func{:}, hyp.cov, X_ref, Z);
 Lchol = isnumeric(L) && all(all(tril(L,-1)==0)&diag(L)'>0&isreal(diag(L))');
-Lchol = 0;
-if Lchol    % L contains chol decomp => use Cholesky parameters (alpha,sW,L)
-   V = L'\(sW.*Ks);
-   grid_map_prior.P = diag(kss) - V'*V;                       % predictive variances
-  else                % L is not triangular => use alternative parametrisation
+%Lchol = 1;
+%if Lchol    % L contains chol decomp => use Cholesky parameters (alpha,sW,L)
+%   V = L'\(sW.*Ks);
+%   grid_map_prior.P = diag(kss) - V'*V;                       % predictive variances
+%  else                % L is not triangular => use alternative parametrisation
   if isnumeric(L), LKs = L*(Ks); else LKs = L(Ks); end    % matrix or callback
   grid_map_prior.P = diag(kss) + Ks'*LKs;                    % predictive variances
-end
+%end
 
 %% Plotting %%
 if (matlab_parameters.visualize)
