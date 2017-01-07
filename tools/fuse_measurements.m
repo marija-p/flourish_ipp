@@ -15,6 +15,7 @@ function [xf,Pf] = fuse_measurements(xa,P,za,Ra,ind)
 % Teresa Vidal Calleja 12/2016
 %
 
+% Construct matrices for KF update.
 [m,n] = size(xa);
 x = reshape(xa,[],1);
 
@@ -23,11 +24,9 @@ z = reshape(za,[],1);
 R = diag(reshape(Ra,[],1));
 
 H = zeros(r*s,m*n);
-j=1;
 
 for i=1:length(ind)
-    H(j,ind(i)) = 1;
-    j=j+1;
+    H(i,ind(i)) = 1;
 end
 
 [x,Pf] = KF_update_cholesky(x,P,z-H*x,R,H);
