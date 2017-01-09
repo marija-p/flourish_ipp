@@ -30,12 +30,12 @@ mean_func = @meanConst;
 
 % Hyperparameters
 hyp.mean = 0.5;
-hyp.cov = [0, 0.1];
-hyp.lik = -1.0;
+hyp.cov =  [1.3 0.5];
+hyp.lik =  2.2;
 
 % Indices of training data (can be anything within matrix range)
-training_ind_x = [1:3, 8:18];
-training_ind_y = [1:3, 8:18];
+training_ind_x = [8:18];
+training_ind_y = [8:18];
 
 %% Data %%
 
@@ -71,17 +71,16 @@ ys = reshape(ys, predict_dim_y, predict_dim_x);
 alpha = post.alpha;
 L = post.L; 
 sW = post.sW; 
-kss = real(feval(cov_func{:}, hyp.cov, Z, 'diag'));
+Kss = feval(cov_func{:}, hyp.cov, Z);
 Ks = feval(cov_func{:}, hyp.cov, X_ref, Z);
 Lchol = isnumeric(L) && all(all(tril(L,-1)==0)&diag(L)'>0&isreal(diag(L))');
-%Lchol = 1;
-%if Lchol    % L contains chol decomp => use Cholesky parameters (alpha,sW,L)
-%   V = L'\(sW.*Ks);
-%   grid_map_prior.P = diag(kss) - V'*V;                       % predictive variances
-%  else                % L is not triangular => use alternative parametrisation
+if Lchol    % L contains chol decomp => use Cholesky parameters (alpha,sW,L)
+  V = L'\(sW.*Ks);
+  grid_map_prior.P = Kss - V'*V;                       % predictive variances
+ else                % L is not triangular => use alternative parametrisation
   if isnumeric(L), LKs = L*(Ks); else LKs = L(Ks); end    % matrix or callback
-  grid_map_prior.P = diag(kss) + Ks'*LKs;                    % predictive variances
-%end
+  grid_map_prior.P = Kss + Ks'*LKs;                    % predictive variances
+end
 
 %% Plotting %%
 if (matlab_parameters.visualize)

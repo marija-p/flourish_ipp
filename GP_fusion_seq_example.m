@@ -34,8 +34,8 @@ mean_func = @meanConst;
 
 % Hyperparameters
 hyp.mean = 0.5;
-hyp.cov = [0.01, 0.5];
-hyp.lik = -0.5;
+hyp.cov =  [1.3 0.5];
+hyp.lik =  2.2;
 
 % List of places in the environment to take measurements at
 pos_env_list = [0, 0, 4; ...
@@ -45,8 +45,8 @@ pos_env_list = [0, 0, 4; ...
 %                0, 0, 4; ...
 %                0, 0, 4; ...
 %                0, 0, 4];
-
-%pos_env_list = [0, 0, 2; ...
+% 
+% pos_env_list = [0, 0, 2; ...
 %                2, 2, 2; ...
 %                -2, -2, 2];
 
@@ -80,11 +80,23 @@ ymu = reshape(ymu, predict_dim_y, predict_dim_x);
 alpha = post.alpha;
 L = post.L; 
 sW = post.sW;
-kss = real(feval(cov_func{:}, hyp.cov, Z, 'diag'));
+Kss = real(feval(cov_func{:}, hyp.cov, Z));
 Ks = feval(cov_func{:}, hyp.cov, X_ref, Z);
 Lchol = isnumeric(L) && all(all(tril(L,-1)==0)&diag(L)'>0&isreal(diag(L))');
-if isnumeric(L), LKs = L*(Ks); else LKs = L(Ks); end    % matrix or callback
-grid_map.P = diag(kss) + Ks'*LKs;                    % predictive variances
+if Lchol    % L contains chol decomp => use Cholesky parameters (alpha,sW,L)
+  V = L'\(sW.*Ks);
+  grid_map.P = Kss - V'*V;                       % predictive variances
+ else                % L is not triangular => use alternative parametrisation
+  if isnumeric(L), LKs = L*(Ks); else LKs = L(Ks); end    % matrix or callback
+  grid_map.P = Kss + Ks'*LKs;                    % predictive variances
+end
+
+%% This is just to test in case of no-inference using only the kernel
+% sn2=exp(2*hyp.lik);
+% K = feval(cov_func{:},hyp.cov,X_ref);
+% KplusR = K+ sn2*eye(length(K));
+% grid_map.P = KplusR;
+%%
 
 % Extract variance map (diagonal elements).
 Y_sigma = sqrt(diag(grid_map.P)');

@@ -34,8 +34,11 @@ mean_func = @meanConst;
 
 % Hyperparameters
 hyp.mean = 0.5;
-hyp.cov = [0.01 0.5];
-hyp.lik = -0.5;
+% hyp.cov = [0.3 -0.5];
+% hyp.lik = 5;
+
+hyp.cov =  [1.3 0.5];
+hyp.lik =  2.2;
 
 %hyp.cov =  [0.01 0.5];%[1, -0.76];
 %cov = [0.5, 2];
@@ -75,11 +78,17 @@ grid_map_prior.m = 0.5*ones(size(ground_truth_map));
 %% Compute covariance (Method 1 - no inference).
 % sn2=exp(2*hyp.lik);
 % K = feval(cov_func{:},hyp.cov,X_ref);
-%KplusR = K+ sn2*eye(length(K));
-%KplusR_inv = eye(size(K))/KplusR ;
-%kss = feval(cov_func{:}, hyp.cov, Z, 'diag');
-%Ks = feval(cov_func{:}, hyp.cov, X_ref, Z);
-%grid_map.P = diag(kss)- Ks'*KplusR_inv*Ks;
+% KplusR = K+ sn2*eye(length(K));
+% KplusR_inv = eye(size(K))/KplusR ;
+% Kss = feval(cov_func{:}, hyp.cov, Z) ;
+% Ks = feval(cov_func{:}, hyp.cov, X_ref, Z);
+% grid_map_prior.P = Kss - Ks'*KplusR_inv*Ks;
+
+%% This is just to test in case of no-inference using only the kernel
+sn2=exp(2*hyp.lik);
+K = feval(cov_func{:},hyp.cov,X_ref);
+KplusR = K+ sn2*eye(length(K));
+%grid_map_prior.P = KplusR;
 
 %% Compute covariance (Method 2 - with inference).
 Y = reshape(grid_map_prior.m,[],1);
@@ -93,17 +102,16 @@ ymu = reshape(ymu, predict_dim_y, predict_dim_x);
 alpha = post.alpha;
 L = post.L; 
 sW = post.sW; 
-kss = real(feval(cov_func{:}, hyp.cov, Z, 'diag'));
+Kss = real(feval(cov_func{:}, hyp.cov, Z));
 Ks = feval(cov_func{:}, hyp.cov, X_ref, Z);
 Lchol = isnumeric(L) && all(all(tril(L,-1)==0)&diag(L)'>0&isreal(diag(L))');
-%Lchol = 0;
-%if Lchol    % L contains chol decomp => use Cholesky parameters (alpha,sW,L)
-%   V  = L'\(sW.*Ks);
-%   grid_map_prior.P = diag(kss) - V'*V;                       % predictive variances
-%  else                % L is not triangular => use alternative parametrisation
+if Lchol    % L contains chol decomp => use Cholesky parameters (alpha,sW,L)
+  V  = L'\(sW.*Ks);
+  grid_map_prior.P = Kss - V'*V;                       % predictive variances
+ else                % L is not triangular => use alternative parametrisation
   if isnumeric(L), LKs = L*(Ks); else LKs = L(Ks); end    % matrix or callback
-  grid_map_prior.P = diag(kss) + Ks'*LKs;                    % predictive variances
-%end
+  grid_map_prior.P = Kss + Ks'*LKs;                    % predictive variances
+end
 
 % Extract variance map (diagonal elements).
 Y_sigma = sqrt(diag(grid_map_prior.P)'); 
