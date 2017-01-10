@@ -153,7 +153,7 @@ for i = 1:num_of_measurements
         subplot(2, num_of_measurements + 2, num_of_measurements + 4 + i)
         contourf(P_post)
         c = colorbar;
-        P_climit = get(c, 'Limits');
+        set(c, 'Limits', P_climit);
         colorbar off
         title(['Var. Trace = ', num2str(trace(P_post), 5)])
         set(gca,'Ydir','Normal');
