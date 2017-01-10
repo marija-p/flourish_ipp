@@ -86,15 +86,15 @@ ymu = reshape(ymu, predict_dim_y, predict_dim_x);
 alpha = post.alpha;
 L = post.L; 
 sW = post.sW; 
-kss = feval(cov_func{:}, hyp.cov, Z, 'diag');
+Kss = feval(cov_func{:}, hyp.cov, Z);
 Ks = feval(cov_func{:}, hyp.cov, X_ref, Z);
 Lchol = isnumeric(L) && all(all(tril(L,-1)==0)&diag(L)'>0&isreal(diag(L))');
 if Lchol    % L contains chol decomp => use Cholesky parameters (alpha,sW,L)
    V  = L'\(sW.*Ks);
-   grid_map_prior.P = diag(kss) - V'*V;                       % predictive variances
+   grid_map_prior.P = Kss - V'*V;                       % predictive variances
   else                % L is not triangular => use alternative parametrisation
   if isnumeric(L), LKs = L*(Ks); else LKs = L(Ks); end    % matrix or callback
-  grid_map_prior.P = diag(kss) + Ks'*LKs;                    % predictive variances
+  grid_map_prior.P = Kss + Ks'*LKs;                    % predictive variances
 end
 
 % Extract variance map.
