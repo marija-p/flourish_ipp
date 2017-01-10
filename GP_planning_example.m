@@ -118,9 +118,6 @@ if (matlab_parameters.visualize)
     
     subplot(2, 4, 6)
     contourf(P_prior)
-    c1 = colorbar;
-    P_climit = get(c1, 'Limits');
-    colorbar off
     title(['Var. - prior. Trace = ', num2str(trace(P_prior), 5)])
     set(gca,'Ydir','Normal');
 
@@ -132,7 +129,6 @@ if (matlab_parameters.visualize)
     
     subplot(2, 4, 7)
     contourf(P_post)
-    colorbar off
     title(['Var. Trace = ', num2str(trace(P_post), 5)])
     set(gca,'Ydir','Normal');
     
@@ -177,13 +173,20 @@ if (matlab_parameters.visualize)
     caxis([0, 1])
     title(['Mean - after 2 meas.'])
     set(gca,'Ydir','Normal');
-    c1 = colorbar;
+    colorbar;
     
     subplot(2, 4, 8)
     contourf(P_post)
     title(['Var. Trace = ', num2str(trace(P_post), 5)])
     set(gca,'Ydir','Normal');
-    c2 = colorbar;
+    c = colorbar;
+    P_climits = get(c, 'Limits');
     set(gcf, 'Position', [113, 279, 2402, 800]);
+    
+    % Scale colours of variance plots.
+    subplot(2, 4, 6)
+    caxis(P_climits)
+    subplot(2, 4, 7)
+    caxis(P_climits)
     
 end
