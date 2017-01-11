@@ -10,8 +10,7 @@ function [var] = sensor_model(altitude)
 
 % TODO(M):- Parametrise this.
 %var = altitude/64;
-
-var = 0.5 .* (1 - exp(-0.01 .* altitude));
+var = 5 .* (1 - exp(-0.08 .* altitude));
 
 end
 
