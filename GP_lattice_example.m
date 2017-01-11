@@ -29,27 +29,23 @@ predict_dim_x = dim_x*1;
 predict_dim_y = dim_y*1;
 
 matlab_parameters.visualize = 1;
+visualize_lattice = 1;
 
 % Gaussian Process
 cov_func = {'covMaterniso', 3};
 lik_func = @likGauss;
 inf_func = @infExact;
 mean_func = @meanConst;
-
 % Hyperparameters
 hyp.mean = 0.5;
 hyp.cov =  [1.3 0.5];
 hyp.lik =  2.2;
 
-% Location of first measurement
+% First measurement location
 pos_env_first = [0, 0, 6];
-% List of candidate positions in the environment to take measurements at
-pos_env_list = [0, 0, 5; ...
-                1, 1, 5; ...
-               -5, -5, 5; ...
-               -3, -3, 5; ...
-                7, 7, 5];
-
+% Multi-resolution lattice
+lattice = create_lattice(map_parameters, planning_parameters, 25, 4);
+ 
 %% Data %%
 % Generate (continuous) ground truth map.
 ground_truth_map = create_continuous_map(dim_x, dim_y, cluster_radius);
@@ -106,6 +102,7 @@ grid_map = take_measurement_at_point(pos_env_first, grid_map, ...
     ground_truth_map, map_parameters, planning_parameters);
 Y_sigma = sqrt(diag(grid_map.P)');
 P_post = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
+P_trace_init = trace(P_post);
     
 if (matlab_parameters.visualize)
     
@@ -140,20 +137,23 @@ if (matlab_parameters.visualize)
     
 end
 
+
 %% Candidate Evalaution (Planning ;)) %%
 
 % Initialise best solution found so far.
 P_trace_min = Inf;
 pos_env_best = -Inf;
+P_traces = zeros(size(lattice,1), 1);
 
-for i = 1:size(pos_env_list, 1)
+for i = 1:size(lattice, 1)
     
-    pos_env = pos_env_list(i, :);
+    pos_env = lattice(i, :);
     grid_map_eval = take_measurement_at_point(pos_env, grid_map, ...
         ground_truth_map, map_parameters, planning_parameters);
     
     Y_sigma = sqrt(diag(grid_map_eval.P)');
     P_post = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
+    P_traces(i) = trace(P_post);
     
     disp(['Evaluating Candidate No. ', num2str(i), ': ', num2str(pos_env)]);
     disp(['Trace of P: ', num2str(trace(P_post))]);
@@ -166,7 +166,10 @@ for i = 1:size(pos_env_list, 1)
     
 end
 
-% Take final measurement at best point;
+disp(['Best candidate: ', num2str(pos_env_best)]);
+disp(['Trace of P: ', num2str(P_trace_min)]);
+
+% Take final measurement at best point.
 grid_map = take_measurement_at_point(pos_env_best, grid_map, ...
     ground_truth_map, map_parameters, planning_parameters);
 Y_sigma = sqrt(diag(grid_map.P)');
@@ -194,5 +197,21 @@ if (matlab_parameters.visualize)
     caxis(P_climits)
     subplot(2, 4, 7)
     caxis(P_climits)
+    
+end
+
+% Plot the objective values on the lattice.
+if (visualize_lattice)
+    
+    figure;
+    scatter3(lattice(:,1), lattice(:,2), lattice(:,3), 46, ...
+      P_trace_init - P_traces, 'filled');
+    c = colorbar;
+    ylabel(c, 'Info. value')
+    xlabel('x (m)')
+    ylabel('y (m)')
+    zlabel('z (m)')
+    title('Lattice info. evaluation')
+    grid minor
     
 end

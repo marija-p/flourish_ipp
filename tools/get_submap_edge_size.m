@@ -1,6 +1,6 @@
 function [submap_edge_size] = get_submap_edge_size(height, ...
     map_parameters, planning_parameters)
-% Calculates observation window size from height.
+% Calculates observation window size from height (grid coordinates).
 
 edge_size_x = ceil((1/map_parameters.resolution)*...
     2*(height*tand(planning_parameters.sensor_fov_angle_x/2)));
