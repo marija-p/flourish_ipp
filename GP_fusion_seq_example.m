@@ -5,28 +5,30 @@ clear all; close all; clc;
 % Environment
 cluster_radius = 3;
 % Dimensions [m]
-dim_x_env = 10;
-dim_y_env = 10;
+dim_x_env = 30;
+dim_y_env = 30;
 
 % Camera fields of view (FoV)
 planning_parameters.sensor_fov_angle_x = 60;
 planning_parameters.sensor_fov_angle_y = 60;
 
 % Map resolution [m/cell]
-map_parameters.resolution = 0.5;
+map_parameters.resolution = 0.75;
 % Map dimensions [cells]
 map_parameters.dim_x = dim_x_env/map_parameters.resolution;
 map_parameters.dim_y = dim_y_env/map_parameters.resolution;
+% Position of map in the environment [m]
+map_parameters.position_x = -dim_x_env / 2;
+map_parameters.position_y = -dim_y_env / 2;
 dim_x = map_parameters.dim_x;
 dim_y = map_parameters.dim_y;
 % Prediction map dimensions [cells]
 predict_dim_x = dim_x*1;
 predict_dim_y = dim_y*1;
 
-matlab_parameters.visualize = 1;
+matlab_parameters.visualize = 0;
 
 % Gaussian Process
-% cov_func = {'covSEiso'};
 cov_func = {'covMaterniso', 3};
 lik_func = @likGauss;
 inf_func = @infExact;
@@ -34,21 +36,13 @@ mean_func = @meanConst;
 
 % Hyperparameters
 hyp.mean = 0.5;
-hyp.cov =  [1.3 0.5];
-hyp.lik =  2.2;
+hyp.cov =  [1.3 0.3];
+hyp.lik =  0.35;
 
 % List of places in the environment to take measurements at
-pos_env_list = [0, 0, 4; ...
-                0, 0, 4; ...
-                0, 0, 4];
-%                0, 0, 4; ...
-%                0, 0, 4; ...
-%                0, 0, 4; ...
-%                0, 0, 4];
-% 
-% pos_env_list = [0, 0, 2; ...
-%                2, 2, 2; ...
-%                -2, -2, 2];
+pos_env_list = [0, 0, 25];
+pos_env_list = repmat(pos_env_list, 100, 1);
+
 
 %% Data %%
 
@@ -102,8 +96,7 @@ end
 Y_sigma = sqrt(diag(grid_map.P)');
 P_prior = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
 
-% Go through the positions to take measurements at, updating the map at
-% each.
+% Go through the positions to take measurements at, updating the map.
 num_of_measurements = size(pos_env_list,1);
 if (matlab_parameters.visualize)
     
@@ -125,10 +118,12 @@ if (matlab_parameters.visualize)
     c1 = colorbar;
     P_climit = get(c1, 'Limits');
     colorbar off
-    title(['Var. - prior. Trace = ', num2str(trace(P_prior), 5)])
+    title(['Var. - prior. Trace = ', num2str(trace(grid_map.P), 5)])
     set(gca,'Ydir','Normal');
     
 end
+
+P_trace_prev = trace(grid_map.P);
 
 for i = 1:num_of_measurements
     
@@ -155,7 +150,7 @@ for i = 1:num_of_measurements
         c = colorbar;
         set(c, 'Limits', P_climit);
         colorbar off
-        title(['Var. Trace = ', num2str(trace(P_post), 5)])
+        title(['Var. Trace = ', num2str(trace(grid_map.P), 5)])
         set(gca,'Ydir','Normal');
         if (i == num_of_measurements)
             c2 = colorbar;
@@ -163,5 +158,11 @@ for i = 1:num_of_measurements
         end
         
     end
+    
+    disp(['Measurement No. ', num2str(i), ': ', num2str(pos_env)]);
+    disp(['Trace of P: ', num2str(trace(grid_map.P))]);
+    disp(['Diff. in trace of P: ', num2str(trace(P_trace_prev - trace(grid_map.P)))]);
+    
+    P_trace_prev = trace(grid_map.P);
     
 end
