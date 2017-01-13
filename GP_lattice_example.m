@@ -8,6 +8,10 @@ cluster_radius = 3;
 dim_x_env = 30;
 dim_y_env = 30;
 
+% Coefficients for the exponential height-dependant sensor variance model
+% var = A * (1 - e^(-B * height))
+planning_parameters.sensor_coeff_A = 0.05;
+planning_parameters.sensor_coeff_B = 0.2;
 % Camera fields of view (FoV)
 planning_parameters.sensor_fov_angle_x = 60;
 planning_parameters.sensor_fov_angle_y = 60;
@@ -30,6 +34,7 @@ predict_dim_y = dim_y*1;
 
 matlab_parameters.visualize = 1;
 visualize_lattice = 1;
+visualize_path = 1;
 
 % Gaussian Process
 cov_func = {'covMaterniso', 3};
@@ -46,7 +51,7 @@ pos_env_init = [0, 0, 6];
 % Multi-resolution lattice
 lattice = create_lattice(map_parameters, planning_parameters, 25, 4);
 % Number of measurements to take (including initial one)
-num_of_measurements = 22;
+num_of_measurements = 20;
  
 %% Data %%
 % Generate (continuous) ground truth map.
@@ -149,9 +154,11 @@ end
 P_trace_prev = P_trace_init;
 pos_env_prev = pos_env_init;
 
+path = [];
+
 for k = 1:num_of_measurements-1
     
-    % Initialise best solution found so far.
+    % Initialise best solution so far.
     obj_max = -Inf;
     pos_env_best = -Inf;
     obj_lattice = zeros(size(lattice,1), num_of_measurements-1);
@@ -164,11 +171,12 @@ for k = 1:num_of_measurements-1
         P_trace = trace(grid_map_eval.P);
         
         gain = P_trace_prev - P_trace;
-        cost = max(pdist([pos_env_prev; pos_env_eval]), 10)  ;
+        % Limit the min. distance between measurements.
+        cost = max(pdist([pos_env_prev; pos_env_eval]), 5);
         obj = gain/cost;
         obj_lattice(i, k) = obj;
 
-        %disp(['Evaluating Candidate No. ', num2str(i), ': ', num2str(pos_env)]);
+        %disp(['Evaluating Candidate No. ', num2str(i), ': ', num2str(pos_env_eval)]);
         %disp(['Trace of P: ', num2str(trace(grid_map_eval.P))]);
 
         % Update best solution.
@@ -189,6 +197,8 @@ for k = 1:num_of_measurements-1
     
     P_trace_prev = trace(grid_map.P);
     pos_env_prev = pos_env_best;
+    
+    path = [path; pos_env_best];
 
 end
 
@@ -209,7 +219,7 @@ if (matlab_parameters.visualize)
     P_climits = get(c, 'Limits');
     set(gcf, 'Position', [113, 279, 2402, 800]);
     
-    % Scale colours of variance plots.
+    % Scale variance plot colours.
     subplot(2, 4, 6)
     caxis(P_climits)
     subplot(2, 4, 7)
@@ -230,5 +240,12 @@ if (visualize_lattice)
     zlabel('z (m)')
     title('Lattice info. evaluation')
     grid minor
+    
+end
+
+if (visualize_path)
+    
+    figure;
+    plot_path(path);
     
 end

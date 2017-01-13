@@ -26,7 +26,7 @@ dim_y = map_parameters.dim_y;
 predict_dim_x = dim_x*1;
 predict_dim_y = dim_y*1;
 
-matlab_parameters.visualize = 0;
+matlab_parameters.visualize = 1;
 
 % Gaussian Process
 cov_func = {'covMaterniso', 3};
@@ -40,8 +40,8 @@ hyp.cov =  [1.3 0.3];
 hyp.lik =  0.35;
 
 % List of places in the environment to take measurements at
-pos_env_list = [0, 0, 25];
-pos_env_list = repmat(pos_env_list, 100, 1);
+pos_env_list = [0, 0, 13];
+pos_env_list = repmat(pos_env_list, 1, 1);
 
 
 %% Data %%
