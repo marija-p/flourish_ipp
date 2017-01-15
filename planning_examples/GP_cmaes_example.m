@@ -18,6 +18,10 @@ planning_parameters.sensor_fov_angle_y = 60;
 planning_parameters.min_height = 1;
 planning_parameters.max_height = 26;
 
+% Number of points in global plan over a horizon
+optimization_parameters.planning_horizon_waypoints = 6;
+optimization_parameters.max_iters = 15;
+
 % Map resolution [m/cell]
 map_parameters.resolution = 0.75;
 % Map dimensions [cells]
@@ -33,7 +37,6 @@ predict_dim_x = dim_x*1;
 predict_dim_y = dim_y*1;
 
 matlab_parameters.visualize = 1;
-visualize_lattice = 1;
 visualize_path = 1;
 
 % Gaussian Process
@@ -50,8 +53,6 @@ hyp.lik =  0.35;
 pos_env_init = [0, 0, 6];
 % Multi-resolution lattice
 lattice = create_lattice(map_parameters, planning_parameters, 25, 4);
-% Number of measurements to take (including initial one)
-num_of_measurements = 20;
  
 %% Data %%
 % Generate (continuous) ground truth map.
@@ -149,58 +150,105 @@ if (matlab_parameters.visualize)
 end
 
 
-%% Candidate Evalaution (Planning ;)) %%
-%lattice = lattice(1:50, :);
+%% Planning %%
+
+%% STEP 1. Grid search on the lattice.
 P_trace_prev = P_trace_init;
 pos_env_prev = pos_env_init;
+grid_map_plan = grid_map;
+path = pos_env_init;
+% Path travel distance
+path_length = 0;
 
-path = [];
-
-for k = 1:num_of_measurements-1
+while (optimization_parameters.planning_horizon_waypoints > size(path, 1))
     
     % Initialise best solution so far.
-    obj_max = -Inf;
+    obj_min = Inf;
     pos_env_best = -Inf;
-    obj_lattice = zeros(size(lattice,1), num_of_measurements-1);
 
     for i = 1:size(lattice, 1)
 
         pos_env_eval = lattice(i, :);
-        grid_map_eval = take_measurement_at_point(pos_env_eval, grid_map, ...
-            ground_truth_map, map_parameters, planning_parameters);
+        grid_map_eval = predict_map_update(pos_env_eval, grid_map_plan, ...
+            map_parameters, planning_parameters);
         P_trace = trace(grid_map_eval.P);
         
         gain = P_trace_prev - P_trace;
         % Limit the min. distance between measurements.
         cost = max(pdist([pos_env_prev; pos_env_eval]), 5);
-        obj = gain/cost;
-        obj_lattice(i, k) = obj;
+        obj = -gain/cost;
 
         %disp(['Evaluating Candidate No. ', num2str(i), ': ', num2str(pos_env_eval)]);
         %disp(['Trace of P: ', num2str(trace(grid_map_eval.P))]);
-
+        
         % Update best solution.
-        if (obj > obj_max)
-            obj_max = obj;
+        if (obj < obj_min)
+            obj_min = obj;
             pos_env_best = pos_env_eval;
         end
-
+        
     end
-
-    % Take final measurement at best point.
-    grid_map = take_measurement_at_point(pos_env_best, grid_map, ...
-        ground_truth_map, map_parameters, planning_parameters);
-    Y_sigma = sqrt(diag(grid_map.P)');
-    P_post = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
-    disp(['Taking Measurement ', num2str(k + 1), ' at: ', num2str(pos_env_best)]);
-    disp(['Trace of P: ', num2str(trace(grid_map.P))]);
     
-    P_trace_prev = trace(grid_map.P);
+    grid_map_plan = predict_map_update(pos_env_best, grid_map_plan, ...
+        map_parameters, planning_parameters);
+    disp(['Point ', num2str(size(path,1)+1), ' at: ', num2str(pos_env_best)]);
+    disp(['Trace of P: ', num2str(trace(grid_map_plan.P))]);
+    path = [path; pos_env_best];
+    path_length = path_length + max(pdist(path(end-1:end,:)), 5);
+    
+    P_trace_prev = trace(grid_map_plan.P);
     pos_env_prev = pos_env_best;
     
-    path = [path; pos_env_best];
-
 end
+disp(['Trace before optimization: ', num2str(trace(grid_map_plan.P))]);
+disp(['Distance before optimization: ', num2str(path_length)]);
+disp(['Objective after optimization: ', ...
+    num2str((P_trace_init - trace(grid_map_plan.P)) / path_length)]);
+
+%% STEP 2. CMA-ES optimization.
+% Set optimization parameters.
+opt = cmaes;
+opt.DispFinal = 'off';
+opt.LogModulo = 0;
+opt.TolFun = 1e-9;
+opt.IncPopSize = 1;
+opt.SaveVariables = 'off';
+opt.MaxIter = optimization_parameters.max_iters;
+opt.Seed = randi(2^10);
+
+% Set bounds and covariances.
+LBounds = [-dim_x_env/2;-dim_y_env/2;planning_parameters.min_height];
+UBounds = [dim_x_env/2;dim_y_env/2;planning_parameters.max_height];
+opt.LBounds = repmat(LBounds, size(path,1)-1, 1);
+opt.UBounds = repmat(UBounds, size(path,1)-1, 1);
+cov = [10; 10; 5];
+cov = repmat(cov, size(path,1)-1, 1);
+
+% Remove starting point (as this is fixed).
+starting_point = path(1,:);
+path = reshape(path(2:end,:)', [], 1);
+path_optimized = cmaes('optimize_points', path, cov, opt, starting_point, grid_map, ...
+    map_parameters, planning_parameters);
+path_optimized = reshape(path_optimized, 3, [])';
+path_optimized = [starting_point; path_optimized];
+
+
+%% Measurement
+path_length = 0;
+for i = 2:size(path_optimized,1)
+    
+    grid_map = take_measurement_at_point(path_optimized(i,:), grid_map, ...
+        ground_truth_map, map_parameters, planning_parameters);
+    path_length = path_length + max(pdist(path_optimized(i-1:i,:)),5);
+    
+end
+
+Y_sigma = sqrt(diag(grid_map.P)');
+P_post = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
+disp(['Trace after optimization: ', num2str(trace(grid_map.P))]);
+disp(['Distance after optimization: ', num2str(path_length)]);
+disp(['Objective after optimization: ', ...
+    num2str((P_trace_init - trace(grid_map.P)) / path_length)]);
 
 if (matlab_parameters.visualize)
     
@@ -227,25 +275,9 @@ if (matlab_parameters.visualize)
     
 end
 
-% Plot the (final) informative objective values on the lattice.
-if (visualize_lattice)
-    
-    figure;
-    scatter3(lattice(:,1), lattice(:,2), lattice(:,3), 46, ...
-      obj_lattice(:, k), 'filled');
-    c = colorbar;
-    ylabel(c, 'Info. value')
-    xlabel('x (m)')
-    ylabel('y (m)')
-    zlabel('z (m)')
-    title('Lattice info. evaluation')
-    grid minor
-    
-end
-
 if (visualize_path)
     
     figure;
-    plot_path(path);
+    plot_path(path_optimized);
     
 end
