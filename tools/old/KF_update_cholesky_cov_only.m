@@ -1,4 +1,4 @@
-function [x,P]= KF_update_cholesky_Cov_only(P,R,H)
+function [x,P]= KF_update_cholesky_cov_only(P,R,H)
 %
 % Calculate the KF (or EKF) update given the prior state [x,P], the innovation v, the 
 % observe uncertainty R, and the (linearised) observation model H. The result is calculated 
