@@ -2,7 +2,7 @@ function grid_map = ...
     predict_map_update(pos, grid_map, map_parameters, planning_parameters)
 % Predicts grid map update at an unvisited UAV position using
 % height-dependent sensor model.
-%
+% --
 % Inputs:
 % pos: current [x,y,z] UAV position [m] - env. coordinates
 % grid_map: current grid map (mean + covariance)
@@ -10,7 +10,7 @@ function grid_map = ...
 % Outputs:
 % grid map
 % ---
-% Marija Popovic 2017
+% M Popovic 2017
 %
 
 %% Measurement Prediction

@@ -19,6 +19,7 @@ planning_parameters.min_height = 1;
 planning_parameters.max_height = 26;
 planning_parameters.max_vel = 5;        % [m/s]
 planning_parameters.max_acc = 3;        % [m/s^2]
+planning_parameters.time_budget = 300;  % [s]
 
 % Parameter to control exploration-exploitation trade-off in objective
 planning_parameters.lambda = 0.001;
@@ -27,9 +28,9 @@ planning_parameters.lambda = 0.001;
 planning_parameters.measurement_frequency = 0.2;
 
 % Number of control points for a polynomial (start point fixed)
-optimization_parameters.control_points = 5;
+planning_parameters.control_points = 4;
 
-optimization_parameters.max_iters = 15;
+optimization_parameters.max_iters = 10;
 
 % Map resolution [m/cell]
 map_parameters.resolution = 0.75;
@@ -110,154 +111,80 @@ end
 % grid_map.P = KplusR;
 %%
 
-% Extract variance map (diagonal elements).
-Y_sigma = sqrt(diag(grid_map.P)');
-P_prior = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
-
-if (matlab_parameters.visualize)
-    
-    figure;
-    subplot(2, 4, 1)
-    imagesc(ground_truth_map)
-    caxis([0, 1])
-    title('Ground truth map')
-    set(gca,'Ydir', 'Normal');
-    
-    subplot(2, 4, 2)
-    imagesc(ymu)
-    caxis([0, 1])
-    title('Mean - prior')
-    set(gca,'Ydir', 'Normal');
-    
-    subplot(2, 4, 6)
-    contourf(P_prior)
-    title(['Var. Trace = ', num2str(trace(grid_map.P), 5)])
-    set(gca,'Ydir','Normal');
- 
-end
-
 % Take an initial measurement.
 grid_map = take_measurement_at_point(point_init, grid_map, ...
     ground_truth_map, map_parameters, planning_parameters);
 Y_sigma = sqrt(diag(grid_map.P)');
 P_post = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
 P_trace_init = trace(grid_map.P);
-    
-if (matlab_parameters.visualize)
-
-    subplot(2, 4, 3)
-    imagesc(grid_map.m)
-    caxis([0, 1])
-    title('Mean - init.')
-    set(gca,'Ydir', 'Normal');
-    
-    subplot(2, 4, 7)
-    contourf(P_post)
-    title(['Var. Trace = ', num2str(trace(grid_map.P), 5)])
-    set(gca,'Ydir','Normal');
-    
-end
 
 
-%% Planning %%
-
-%% STEP 1. Grid search on the lattice.
+%% Planning-Execution Loop %%
 P_trace_prev = P_trace_init;
 point_prev = point_init;
-grid_map_plan = grid_map;
-path = point_init;
 
-while (optimization_parameters.control_points > size(path, 1))
+metrics = struct;
+time_elapsed = 0;
+metrics.path_travelled = point_init;
+metrics.measurement_points = point_init;
+metrics.P_traces = trace(grid_map.P);
+metrics.times = 0;
+
+while (time_elapsed < planning_parameters.time_budget)
     
-    % Initialise best solution so far.
-    obj_min = Inf;
-    point_best = -Inf;
+    %% Planning %%
+    
+    %% STEP 1. Grid search on the lattice.
+    path = search_lattice(point_prev, lattice, grid_map, map_parameters, ...
+        planning_parameters);
+    obj = compute_objective(path, grid_map, map_parameters, planning_parameters);
+    disp(['Objective before optimization: ', num2str(obj)]);
+    keyboard
+    
+    %% STEP 2. CMA-ES optimization.
+    path_optimized = optimize_with_cmaes(path, grid_map, map_parameters, ...
+        planning_parameters, optimization_parameters);
+    obj = compute_objective(path_optimized, grid_map, map_parameters, planning_parameters);
+    disp(['Objective after optimization: ', num2str(obj)]);
+    keyboard
 
-    for i = 1:size(lattice, 1)
+    %% Plan Execution %%
+    % Create polynomial trajectory through the control points.
+    trajectory = ...
+        plan_path_waypoints(path_optimized, planning_parameters.max_vel, planning_parameters.max_acc);
 
-        point_eval = lattice(i, :);
-        grid_map_eval = predict_map_update(point_eval, grid_map_plan, ...
-            map_parameters, planning_parameters);
-        P_trace = trace(grid_map_eval.P);
-        
-        gain = P_trace_prev - P_trace;
-        cost = pdist([point_prev; point_eval]);
-        obj = -gain*exp(-planning_parameters.lambda*cost);
+    % Sample trajectory to find locations to take measurements at.
+    [measurement_times, measurement_points, ~, ~] = ...
+        sample_trajectory(trajectory, 1/planning_parameters.measurement_frequency);
 
-        %disp(['Evaluating Candidate No. ', num2str(i), ': ', num2str(pos_env_eval)]);
-        %disp(['Objective: ', num2str(obj)]);
-        
-        % Update best solution.
-        if (obj < obj_min)
-            obj_min = obj;
-            point_best = point_eval;
-        end
-        
+    % Take measurements along path, updating the grid map.
+    for i = 2:size(measurement_points,1)
+        grid_map = take_measurement_at_point(measurement_points(i,:), grid_map, ...
+            ground_truth_map, map_parameters, planning_parameters);
+        metrics.P_traces = [metrics.P_traces; trace(grid_map.P)];
     end
+
+    Y_sigma = sqrt(diag(grid_map.P)');
+    P_post = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
+    disp(['Trace after execution: ', num2str(trace(grid_map.P))]);
+    disp(['Time after execution: ', num2str(measurement_times(end))]);
+    gain = P_trace_prev - trace(grid_map.P);
+    cost = measurement_times(end);
+    disp(['Objective after execution: ', num2str(-gain*exp(-planning_parameters.lambda*cost))]);
+
+    % Update variables for next planning stage.
+    metrics.measurement_points = [metrics.measurement_points; measurement_points];
+    metrics.times = [metrics.times, measurement_times(2:end)];
     
-    grid_map_plan = predict_map_update(point_best, grid_map_plan, ...
-        map_parameters, planning_parameters);
-    disp(['Point ', num2str(size(path,1)+1), ' at: ', num2str(point_best)]);
-    disp(['Trace of P: ', num2str(trace(grid_map_plan.P))]);
-    path = [path; point_best];
+ %  path_travelled = [path_travelled; path_optimized];
+    P_trace_prev = trace(grid_map.P);
+    point_prev = path_optimized(end,:);
+    time_elapsed = time_elapsed + measurement_times(end);
     
-    P_trace_prev = trace(grid_map_plan.P);
-    point_prev = point_best;
+    keyboard
     
 end
 
-obj = compute_objective(path, grid_map, map_parameters, planning_parameters);
-disp(['Objective before optimization: ', num2str(obj)]);
-
-%% STEP 2. CMA-ES optimization.
-% Set optimization parameters.
-opt = cmaes;
-opt.DispFinal = 'off';
-opt.LogModulo = 0;
-opt.TolFun = 1e-9;
-opt.IncPopSize = 1;
-opt.SaveVariables = 'off';
-opt.MaxIter = optimization_parameters.max_iters;
-opt.Seed = randi(2^10);
-
-% Set bounds and covariances.
-LBounds = [-dim_x_env/2;-dim_y_env/2;planning_parameters.min_height];
-UBounds = [dim_x_env/2;dim_y_env/2;planning_parameters.max_height];
-opt.LBounds = repmat(LBounds, size(path,1)-1, 1);
-opt.UBounds = repmat(UBounds, size(path,1)-1, 1);
-cov = [5; 5; 5];
-cov = repmat(cov, size(path,1)-1, 1);
-
-% Remove starting point (as this is fixed).
-path_initial = reshape(path(2:end,:)', [], 1);
-path_optimized = cmaes('optimize_points', path_initial, cov, opt, point_init, ...
-    grid_map, map_parameters, planning_parameters);
-path_optimized = reshape(path_optimized, 3, [])';
-path_optimized = [point_init; path_optimized];
-
-
-%% Plan Execution %%
-% Create polynomial path through the control points.
-trajectory = ...
-    plan_path_waypoints(path_optimized, planning_parameters.max_vel, planning_parameters.max_acc);
-
-% Sample trajectory to find locations to take measurements at.
-[t, measurement_points, ~, ~] = ...
-    sample_trajectory(trajectory, 1/planning_parameters.measurement_frequency);
-
-% Take measurements along path.
-for i = 2:size(measurement_points,1)
-    grid_map = take_measurement_at_point(measurement_points(i,:), grid_map, ...
-        ground_truth_map, map_parameters, planning_parameters);
-end
-
-Y_sigma = sqrt(diag(grid_map.P)');
-P_post = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
-disp(['Trace after optimization: ', num2str(trace(grid_map.P))]);
-disp(['Time after optimization: ', num2str(t(end))]);
-gain = P_trace_init - trace(grid_map.P);
-cost = t(end);
-disp(['Objective after optimization: ', num2str(-gain*exp(-planning_parameters.lambda*cost))]);
 
 if (matlab_parameters.visualize)
     
@@ -287,6 +214,6 @@ end
 if (visualize_path)
     
     figure;
-    plot_path(path_optimized, planning_parameters);
+    plot_path(path_travelled, planning_parameters);
     
 end
