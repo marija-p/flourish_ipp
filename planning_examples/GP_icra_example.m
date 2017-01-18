@@ -1,5 +1,8 @@
 clear all; close all; clc;
 
+% Random number generator
+rng(1, 'twister');
+
 %% Parameters %%
 
 % Environment
@@ -22,15 +25,16 @@ planning_parameters.max_acc = 3;        % [m/s^2]
 planning_parameters.time_budget = 300;  % [s]
 
 % Parameter to control exploration-exploitation trade-off in objective
-planning_parameters.lambda = 0.001;
+planning_parameters.lambda = 0.0001;
 
 % Frequency at which to take measurements along a path [Hz]
-planning_parameters.measurement_frequency = 0.2;
+planning_parameters.measurement_frequency = 0.1;
 
 % Number of control points for a polynomial (start point fixed)
 planning_parameters.control_points = 4;
 
-optimization_parameters.max_iters = 10;
+optimization_parameters.max_iters = 15;
+optimization_parameters.use_cmaes = 1;
 
 % Map resolution [m/cell]
 map_parameters.resolution = 0.75;
@@ -47,7 +51,6 @@ predict_dim_x = dim_x*1;
 predict_dim_y = dim_y*1;
 
 matlab_parameters.visualize = 1;
-visualize_path = 1;
 
 % Gaussian Process
 cov_func = {'covMaterniso', 3};
@@ -125,7 +128,7 @@ point_prev = point_init;
 
 metrics = struct;
 time_elapsed = 0;
-metrics.path_travelled = point_init;
+metrics.path_travelled = [];
 metrics.measurement_points = point_init;
 metrics.P_traces = trace(grid_map.P);
 metrics.times = 0;
@@ -139,14 +142,16 @@ while (time_elapsed < planning_parameters.time_budget)
         planning_parameters);
     obj = compute_objective(path, grid_map, map_parameters, planning_parameters);
     disp(['Objective before optimization: ', num2str(obj)]);
-    keyboard
     
     %% STEP 2. CMA-ES optimization.
-    path_optimized = optimize_with_cmaes(path, grid_map, map_parameters, ...
-        planning_parameters, optimization_parameters);
-    obj = compute_objective(path_optimized, grid_map, map_parameters, planning_parameters);
-    disp(['Objective after optimization: ', num2str(obj)]);
-    keyboard
+    if (optimization_parameters.use_cmaes)
+        path_optimized = optimize_with_cmaes(path, grid_map, map_parameters, ...
+            planning_parameters, optimization_parameters);
+            %obj = compute_objective(path_optimized, grid_map, map_parameters, planning_parameters);
+            %disp(['Objective after optimization: ', num2str(obj)]);
+    else
+        path_optimized = path;
+    end
 
     %% Plan Execution %%
     % Create polynomial trajectory through the control points.
@@ -172,48 +177,33 @@ while (time_elapsed < planning_parameters.time_budget)
     cost = measurement_times(end);
     disp(['Objective after execution: ', num2str(-gain*exp(-planning_parameters.lambda*cost))]);
 
-    % Update variables for next planning stage.
     metrics.measurement_points = [metrics.measurement_points; measurement_points];
-    metrics.times = [metrics.times, measurement_times(2:end)];
-    
- %  path_travelled = [path_travelled; path_optimized];
+    metrics.times = [metrics.times; time_elapsed + measurement_times(2:end)'];
+
+    % Update variables for next planning stage.
+    metrics.path_travelled = [metrics.path_travelled; path_optimized];
     P_trace_prev = trace(grid_map.P);
     point_prev = path_optimized(end,:);
     time_elapsed = time_elapsed + measurement_times(end);
-    
-    keyboard
     
 end
 
 
 if (matlab_parameters.visualize)
     
-    subplot(2, 4, 4)
+    subplot(2, 1, 1)
     imagesc(grid_map.m)
     caxis([0, 1])
     title('Mean - final')
     set(gca,'Ydir','Normal');
     colorbar;
     
-    subplot(2, 4, 8)
+    subplot(2, 1, 2)
     contourf(P_post)
     title(['Var. Trace = ', num2str(trace(grid_map.P), 5)])
     set(gca,'Ydir','Normal');
     c = colorbar;
     P_climits = get(c, 'Limits');
     set(gcf, 'Position', [113, 279, 2402, 800]);
-    
-    % Scale variance plot colours.
-    subplot(2, 4, 6)
-    caxis(P_climits)
-    subplot(2, 4, 7)
-    caxis(P_climits)
-    
-end
-
-if (visualize_path)
-    
-    figure;
-    plot_path(path_travelled, planning_parameters);
     
 end
