@@ -1,5 +1,5 @@
 function [] = plot_metrics(metrics)
-% Plots informative metrics.
+% Plots logged informative metrics.
 
 do_plot = 1;
 
@@ -9,21 +9,21 @@ time_vector = 0:0.1:metrics.times(end);
 
 times = metrics.times;
 P_traces = metrics.P_traces;
+rmses = metrics.rmses;
 
 ts = timeseries(P_traces, times);
 ts_resampled = resample(ts, time_vector, 'zoh');
 P_traces_resampled = ts_resampled.data';
+ts = timeseries(rmses, times);
+ts_resampled = resample(ts, time_vector, 'zoh');
+rmses_resampled = ts_resampled.data';
 
 if (do_plot)
-    
-    figure;
-    hold on
 
-    h_xlabel = xlabel('Time');
-    h_ylabel = ylabel('Trace of P');
-    set([h_xlabel, h_ylabel], ...
-        'FontName'   , 'Helvetica');
+    % Trace of P
+    subplot(1,2,1)
     
+    hold on
     set(gca, ...
         'Box'         , 'off'     , ...
         'TickDir'     , 'out'     , ...
@@ -39,6 +39,40 @@ if (do_plot)
         'LooseInset', max(get(gca,'TightInset'), 0.02));
     
     plot(time_vector, P_traces_resampled)
+    axis([0 time_vector(end) 0 400])
+    h_xlabel = xlabel('Time (s)');
+    h_ylabel = ylabel('Trace of P');
+    set([h_xlabel, h_ylabel], ...
+        'FontName'   , 'Helvetica');
+    hold off
+    
+    % RMSE
+    subplot(1,2,2)
+    
+    hold on
+    set(gca, ...
+        'Box'         , 'off'     , ...
+        'TickDir'     , 'out'     , ...
+        'TickLength'  , [.02 .02] , ...
+        'XMinorTick'  , 'on'      , ...
+        'YMinorTick'  , 'on'      , ...
+        'YGrid'       , 'on'      , ...
+        'XColor'      , [.3 .3 .3], ...
+        'YColor'      , [.3 .3 .3], ...
+        'YTick'       , 0:0.05:0.2, ...
+        'LineWidth'   , 1         , ...
+        'FontSize'    , text_size, ...
+        'LooseInset', max(get(gca,'TightInset'), 0.02));
+    
+    plot(time_vector, rmses_resampled)
+    axis([0 time_vector(end) 0 0.2])
+    h_xlabel = xlabel('Time (s)');
+    h_ylabel = ylabel('RMSE');
+    set([h_xlabel, h_ylabel], ...
+        'FontName'   , 'Helvetica');
+    hold off
+    
+    set(gcf, 'Position', [3173, 641, 688, 364]);
     
 end
 

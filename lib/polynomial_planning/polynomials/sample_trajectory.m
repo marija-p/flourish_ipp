@@ -16,9 +16,17 @@ p_ind = 1;
 t = [];
 % Iterate over all segments.
 for i = 1 : length(trajectory.segments)
+    
   segment_time = trajectory.segments(i).time;
     
-  t1 = 0:dt:segment_time;
+  if (i == 1)
+     t1 = 0:dt:segment_time;
+  elseif (dt-(current_time-t(end)) < dt)
+     t1 = dt-(current_time-t(end)):dt:segment_time;
+  else
+     continue;
+  end
+  
   % Append the last sample again? Might be between samples. :/
   %t1 = [t1 segment_time];
   % Iterate over all dimensions.

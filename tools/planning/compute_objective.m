@@ -10,28 +10,34 @@ function obj = compute_objective(control_points, grid_map, map_parameters,...
 % obj: informative objective value (to be minimized)
 % ---
 % M Popovic 2017
+%
 
 % Create polynomial path through the control points.
 trajectory = ...
     plan_path_waypoints(control_points, planning_parameters.max_vel, planning_parameters.max_acc);
 
 % Sample trajectory to find locations to take measurements at.
-[t, measurement_points, ~, ~] = ...
+[~, points_meas, ~, ~] = ...
     sample_trajectory(trajectory, ...
     1/planning_parameters.measurement_frequency);
 
 P_i = trace(grid_map.P);
 
+% Discard path if it is too long.
+if (size(points_meas,1) > 10)
+    obj = Inf;
+    return;
+end
+
 % Predict measurements along the path.
-% NB: - No measurement taken at first (current) point!
-for i = 2:size(measurement_points,1)
-    grid_map = predict_map_update(measurement_points(i,:), grid_map, ...
+for i = 1:size(points_meas,1)
+    grid_map = predict_map_update(points_meas(i,:), grid_map, ...
         map_parameters, planning_parameters);
 end
 
 P_f = trace(grid_map.P);
 gain = P_i - P_f;
-cost = t(end);
+cost = get_trajectory_total_time(trajectory);
 
 % Formulate objective.
 obj = -gain*exp(-planning_parameters.lambda*cost);

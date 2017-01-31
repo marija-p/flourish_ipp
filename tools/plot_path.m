@@ -5,23 +5,40 @@ t = [];
 p = [];
 p_meas = [];
 
-% Loop through all polynomial trajectories that were executed,
-% and stack times/measurements for plotting.
-for i = 1:planning_parameters.control_points:size(path,1)
+% Many polynomials.
+if isfield(planning_parameters, 'control_points')
     
-    trajectory = ...
-        plan_path_waypoints(path(i:i+3,:), planning_parameters.max_vel, ...
-        planning_parameters.max_acc);
-    [t_poly, p_poly] = sample_trajectory(trajectory, 0.1);
-    [~, p_meas_poly] = sample_trajectory(trajectory, ...
-        1/planning_parameters.measurement_frequency);
-    if (i == 1)
-        t = [t; t_poly'];
-    else
-        t = [t; t(end) + t_poly'];
+    % Loop through all polynomial trajectories that were executed,
+    % and stack times/measurements for plotting.
+    for i = 1:planning_parameters.control_points:size(path,1)
+
+        % Create the (semi-global) trajectory.
+        trajectory = ...
+            plan_path_waypoints(path(i:i+planning_parameters.control_points-1,:), ...
+            planning_parameters.max_vel, ...
+            planning_parameters.max_acc);
+        [t_poly, p_poly] = sample_trajectory(trajectory, 0.1);
+        [~, p_meas_poly] = sample_trajectory(trajectory, ...
+            1/planning_parameters.measurement_frequency);
+        if (i == 1)
+            t = [t; t_poly'];
+        else
+            t = [t; t(end) + t_poly'];
+        end
+        p = [p; p_poly];
+        p_meas = [p_meas; p_meas_poly];
+        
     end
-    p = [p; p_poly];
-    p_meas = [p_meas; p_meas_poly];
+    
+% Only one polynomial.
+else
+    
+    % Create the (global) trajectory.
+    trajectory = plan_path_waypoints(path, planning_parameters.max_vel, ...
+        planning_parameters.max_acc);
+    [t, p] = sample_trajectory(trajectory, 0.1);
+    [~, p_meas] = sample_trajectory(trajectory, ...
+        1/planning_parameters.measurement_frequency);
     
 end
 

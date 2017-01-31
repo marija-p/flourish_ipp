@@ -1,7 +1,8 @@
 clear all; close all; clc;
 
 % Random number generator
-rng(1, 'twister');
+matlab_parameters.seed_num = 3;
+rng(matlab_parameters.seed_num, 'twister');
 
 %% Parameters %%
 
@@ -22,18 +23,24 @@ planning_parameters.min_height = 1;
 planning_parameters.max_height = 26;
 planning_parameters.max_vel = 5;        % [m/s]
 planning_parameters.max_acc = 3;        % [m/s^2]
-planning_parameters.time_budget = 300;  % [s]
+planning_parameters.time_budget = 250;  % [s]
 
 % Parameter to control exploration-exploitation trade-off in objective
-planning_parameters.lambda = 0.0001;
+planning_parameters.lambda = 0.001;
 
 % Frequency at which to take measurements along a path [Hz]
 planning_parameters.measurement_frequency = 0.1;
 
 % Number of control points for a polynomial (start point fixed)
-planning_parameters.control_points = 4;
+planning_parameters.control_points = 5;
 
-optimization_parameters.max_iters = 15;
+% Threshold [% vegetation cover] - only regions above this value are
+% considered "interesting" and used when computing information gain.
+planning_parameters.lower_threshold = 0.3;
+% Whether to use the threshold value for plannin
+planning_parameters.use_threshold = 0;
+
+optimization_parameters.max_iters = 25;
 optimization_parameters.use_cmaes = 1;
 
 % Map resolution [m/cell]
@@ -63,7 +70,7 @@ hyp.cov =  [1.3 0.3];
 hyp.lik =  0.35;
 
 % First measurement location
-point_init = [0, 0, 6];
+point_init = [7.5, 7.5, 8.66];
 % Multi-resolution lattice
 lattice = create_lattice(map_parameters, planning_parameters, 25, 4);
  
@@ -114,9 +121,8 @@ end
 % grid_map.P = KplusR;
 %%
 
-% Take an initial measurement.
-grid_map = take_measurement_at_point(point_init, grid_map, ...
-    ground_truth_map, map_parameters, planning_parameters);
+%grid_map = take_measurement_at_point(point_init, grid_map, ...
+%    ground_truth_map, map_parameters, planning_parameters);
 Y_sigma = sqrt(diag(grid_map.P)');
 P_post = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
 P_trace_init = trace(grid_map.P);
@@ -129,9 +135,13 @@ point_prev = point_init;
 metrics = struct;
 time_elapsed = 0;
 metrics.path_travelled = [];
-metrics.measurement_points = point_init;
-metrics.P_traces = trace(grid_map.P);
-metrics.times = 0;
+%metrics.points_meas = point_init;
+%metrics.P_traces = trace(grid_map.P);
+%metrics.times = 0;
+metrics.points_meas = [];
+metrics.P_traces = [];
+metrics.times = [];
+metrics.rmses = [];
 
 while (time_elapsed < planning_parameters.time_budget)
     
@@ -156,35 +166,38 @@ while (time_elapsed < planning_parameters.time_budget)
     %% Plan Execution %%
     % Create polynomial trajectory through the control points.
     trajectory = ...
-        plan_path_waypoints(path_optimized, planning_parameters.max_vel, planning_parameters.max_acc);
+        plan_path_waypoints(path_optimized, ...
+        planning_parameters.max_vel, planning_parameters.max_acc);
 
     % Sample trajectory to find locations to take measurements at.
-    [measurement_times, measurement_points, ~, ~] = ...
+    [times_meas, points_meas, ~, ~] = ...
         sample_trajectory(trajectory, 1/planning_parameters.measurement_frequency);
 
     % Take measurements along path, updating the grid map.
-    for i = 2:size(measurement_points,1)
-        grid_map = take_measurement_at_point(measurement_points(i,:), grid_map, ...
+    for i = 1:size(points_meas,1)
+        grid_map = take_measurement_at_point(points_meas(i,:), grid_map, ...
             ground_truth_map, map_parameters, planning_parameters);
         metrics.P_traces = [metrics.P_traces; trace(grid_map.P)];
+        metrics.rmses = [metrics.rmses; compute_rmse(grid_map.m, ground_truth_map)];
     end
 
     Y_sigma = sqrt(diag(grid_map.P)');
     P_post = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
     disp(['Trace after execution: ', num2str(trace(grid_map.P))]);
-    disp(['Time after execution: ', num2str(measurement_times(end))]);
+    disp(['Time after execution: ', num2str(get_trajectory_total_time(trajectory))]);
     gain = P_trace_prev - trace(grid_map.P);
-    cost = measurement_times(end);
+    cost = get_trajectory_total_time(trajectory);
     disp(['Objective after execution: ', num2str(-gain*exp(-planning_parameters.lambda*cost))]);
 
-    metrics.measurement_points = [metrics.measurement_points; measurement_points];
-    metrics.times = [metrics.times; time_elapsed + measurement_times(2:end)'];
+    metrics.points_meas = [metrics.points_meas; points_meas];
+    metrics.times = [metrics.times; time_elapsed + times_meas'];
 
     % Update variables for next planning stage.
     metrics.path_travelled = [metrics.path_travelled; path_optimized];
     P_trace_prev = trace(grid_map.P);
-    point_prev = path_optimized(end,:);
-    time_elapsed = time_elapsed + measurement_times(end);
+    
+    point_prev = path_optimized(end,:); % End of trajectory (not last meas. point!)
+    time_elapsed = time_elapsed + get_trajectory_total_time(trajectory);  
     
 end
 
