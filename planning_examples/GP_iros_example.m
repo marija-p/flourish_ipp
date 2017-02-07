@@ -38,10 +38,10 @@ planning_parameters.control_points = 5;
 % considered "interesting" and used when computing information gain.
 planning_parameters.lower_threshold = 0.4;
 % Whether to use the threshold value for active planning
-planning_parameters.use_threshold = 0;
+planning_parameters.use_threshold = 1;
 
 optimization_parameters.max_iters = 25;
-optimization_parameters.use_cmaes = 1;
+optimization_parameters.opt_method = 'cmaes'; % 'fmc'/cmaes'/'none'
 % Covariances in each search dimension
 optimization_parameters.cov_x = 3;
 optimization_parameters.cov_y = 3;
@@ -135,18 +135,8 @@ P_trace_init = trace(grid_map.P);
 %% Planning-Execution Loop %%
 P_trace_prev = P_trace_init;
 point_prev = point_init;
-
-metrics = struct;
 time_elapsed = 0;
-metrics.path_travelled = [];
-%metrics.points_meas = point_init;
-%metrics.P_traces = trace(grid_map.P);
-%metrics.times = 0;
-metrics.points_meas = [];
-metrics.P_traces = [];
-metrics.times = [];
-metrics.rmses = [];
-metrics.wrmses = [];
+metrics = initialize_metrics();
 
 while (time_elapsed < planning_parameters.time_budget)
     
@@ -158,12 +148,15 @@ while (time_elapsed < planning_parameters.time_budget)
     obj = compute_objective(path, grid_map, map_parameters, planning_parameters);
     disp(['Objective before optimization: ', num2str(obj)]);
     
-    %% STEP 2. CMA-ES optimization.
-    if (optimization_parameters.use_cmaes)
+    %% STEP 2. Path optimization.
+    if (strcmp(optimization_parameters.opt_method, 'cmaes'))
         path_optimized = optimize_with_cmaes(path, grid_map, map_parameters, ...
             planning_parameters, optimization_parameters);
             %obj = compute_objective(path_optimized, grid_map, map_parameters, planning_parameters);
             %disp(['Objective after optimization: ', num2str(obj)]);
+    elseif (strcmp(optimization_parameters.opt_method, 'fmc'))
+        path_optimized = optimize_with_fmc(path, grid_map, map_parameters, ...
+            planning_parameters);
     else
         path_optimized = path;
     end
@@ -185,6 +178,8 @@ while (time_elapsed < planning_parameters.time_budget)
         metrics.P_traces = [metrics.P_traces; trace(grid_map.P)];
         metrics.rmses = [metrics.rmses; compute_rmse(grid_map.m, ground_truth_map)];
         metrics.wrmses = [metrics.wrmses; compute_wrmse(grid_map.m, ground_truth_map)];
+        metrics.mlls = [metrics.mlls; compute_mll(grid_map, ground_truth_map)];
+        metrics.wmlls = [metrics.wmlls; compute_wmll(grid_map, ground_truth_map)];
     end
 
     Y_sigma = sqrt(diag(grid_map.P)');

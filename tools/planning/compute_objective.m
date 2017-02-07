@@ -21,7 +21,13 @@ trajectory = ...
     sample_trajectory(trajectory, ...
     1/planning_parameters.measurement_frequency);
 
-P_i = trace(grid_map.P);
+if (planning_parameters.use_threshold)
+    above_thres_ind = find(grid_map.m >= planning_parameters.lower_threshold);
+    P = reshape(diag(grid_map.P)', size(grid_map.m));
+    P_i = sum(P(above_thres_ind));
+else
+    P_i = trace(grid_map.P);
+end
 
 % Discard path if it is too long.
 if (size(points_meas,1) > 10)
@@ -35,11 +41,16 @@ for i = 1:size(points_meas,1)
         map_parameters, planning_parameters);
 end
 
-P_f = trace(grid_map.P);
-gain = P_i - P_f;
-cost = get_trajectory_total_time(trajectory);
+if (planning_parameters.use_threshold)
+    P = reshape(diag(grid_map.P)', size(grid_map.m));
+    P_f = sum(P(above_thres_ind));
+else
+    P_f = trace(grid_map.P);
+end
 
 % Formulate objective.
+gain = P_i - P_f;
+cost = get_trajectory_total_time(trajectory);
 obj = -gain*exp(-planning_parameters.lambda*cost);
 
 %disp(['Measurements = ', num2str(i)])

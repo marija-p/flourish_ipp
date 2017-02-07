@@ -1,14 +1,16 @@
-function [lattice] = create_lattice(map_parameters, planning_parameters, ...
-    min_height_points, height_increment)
+function [lattice] = create_lattice(map_parameters, planning_parameters)
 % Create multi-dimensional lattice in the UAV configuraton space.
 
 lattice = [];
 
-for height = planning_parameters.min_height:height_increment:planning_parameters.max_height
+point_coeffs = polyfit([planning_parameters.min_height, planning_parameters.max_height], ...
+    [planning_parameters.lattice_min_height_points, 1], 1);
     
-    point_coeffs = polyfit([min_height_points, 1], ...
-        [planning_parameters.min_height, planning_parameters.max_height], 1);
-    num_of_points = point_coeffs(1)*height + point_coeffs(2);
+for height = planning_parameters.min_height: ...
+        planning_parameters.lattice_height_increment: ...
+        planning_parameters.max_height
+    
+    num_of_points = round(point_coeffs(1)*height + point_coeffs(2));
     
     submap_edge_size = get_submap_edge_size(height,  map_parameters, planning_parameters);
     half_submap_edge_size_x = (submap_edge_size.x-1)/2;
