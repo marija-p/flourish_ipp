@@ -5,6 +5,8 @@ classdef Vertex
         % Coordinates in configuration space (x,y,z)
         location;
         % Informative objective at this point
+        gain;
+        cost;
         objective;
         
     end
@@ -36,7 +38,7 @@ classdef Vertex
 
             % Discard path if it is too long.
             if (size(points_meas,1) > 10)
-                obj = Inf;
+                self.objective = Inf;
                 return;
             end
 
@@ -54,8 +56,8 @@ classdef Vertex
             end
 
             % Formulate objective.
-            gain = P_i - P_f;
-            cost = get_trajectory_total_time(trajectory);
+            self.gain = P_i - P_f;
+            self.cost = get_trajectory_total_time(trajectory);
             self.objective = -gain*exp(-planning_parameters.lambda*cost);
 
         end

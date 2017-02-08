@@ -1,4 +1,4 @@
-function [metrics] = rigtree_fun(matlab_parameters, planning_parameters, ...
+function [metrics] = GP_rig(matlab_parameters, planning_parameters, ...
     optimization_parameters, map_parameters, ground_truth_map)
 % Main program for IROS2017 RIG-tree algorithm benchmark.
 %
@@ -73,44 +73,29 @@ P_trace_init = trace(grid_map.P);
 time_elapsed = 0;
 metrics = initialize_metrics();
 
-
-
-
 % Initialize first vertex in tree.
 rigtree_planner = RIGTree();
-start_vertex = Vertex();
-start_vertex.location = pos_env;
-start_vertex.cost = 0;
+q_start = Vertex();
+q_start.location = point_init;
 
 % Initialize best vertex.
-I_best = Inf;
-
-% Initialize metrics.
-logger = create_logger();
+obj_best = Inf;
 
 %% Planning %%
 % Timer for total simulation time
 t_total = tic;
-% Total time spent on planning
-planning_time = 0;
+
+h_tree = [];
 
 %% Planning-Execution Loop %%
-
 while (true)
     
-    t_plan = tic;
-    
-    start_vertex.map = grid_map;
-    start.vertex.information = get_map_entropy(grid_map);
+    % Initialize a tree.
     rigtree_planner = rigtree_planner.resetTree();
-    rigtree_planner.rigtree.vertices = start_vertex;
+    rigtree_planner.rigtree.vertices = q_start;
     rigtree_planner.rigtree.numvertices = 1;
-    rigtree_planner.setStart(start_vertex);
+    rigtree_planner.setStart(q_start);
     found_best_node = 0;
-    
-    if (matlab_parameters.visualize)
-        delete(h_tree);
-    end
     
     for j = 1:500
         
@@ -124,6 +109,7 @@ while (true)
         
         if (isempty(neighbors_idx))
             continue;
+            keyboard
         end
         
         for i = 1:size(neighbors_idx)
@@ -135,20 +121,15 @@ while (true)
             q_new.location = rigtree_planner.stepToLocation(q_near.location, x_feasible);
             
             % Calculate new information and cost.
-            [I_new, grid_map_new] = q_new.evaluateInformation(q_near, ...
+            [obj_new, grid_map_new] = q_new.evaluateObjective(rigtree_planner, ...
                 map_parameters, planning_parameters);
-            C_new = q_near.cost + q_new.evaluateCost(q_near.location, ...
-                planning_parameters);
-            q_new.information = I_new;
-            q_new.cost = C_new;
-            q_new.map = grid_map_new;
             
-            % Check if target node should be pruned.
-            if (rigtree_planner.pruneVertex(q_new))
-                disp(['Pruned node: x = ', num2str(q_new.location(1)), ...
-                    ', y = ', num2str(q_new.location(2)), ', z = ', num2str(q_new.location(3))])
-                continue;
-            else
+            % Check if target vertex should be pruned.
+            %if (rigtree_planner.pruneVertex(q_new))
+            %    disp(['Pruned node: x = ', num2str(q_new.location(1)), ...
+            %        ', y = ', num2str(q_new.location(2)), ', z = ', num2str(q_new.location(3))])
+            %    continue;
+            %else
                 % Add edges and node to tree.
                 rigtree_planner.rigtree.vertices = ...
                     [rigtree_planner.rigtree.vertices; q_new];
@@ -156,17 +137,17 @@ while (true)
                     rigtree_planner.rigtree.numvertices + 1;
                 rigtree_planner.rigtree.edges = [rigtree_planner.rigtree.edges; ...
                     rigtree_planner.addEdge(neighbors_idx(i), q_new)];
-            end
+            %end
             
             % Update best solution.
-            if (I_new < I_best)
+            if (obj_new < obj_best)
                 q_best_idx = rigtree_planner.rigtree.numvertices;
-                I_best = I_new;
+                obj_best = obj_new;
                 found_best_node = 1;
             end
             
             % Add to closed list if budget exceeded.
-            if (C_new > planning_parameters.time_budget)
+            if (q_new.cost > planning_parameters.time_budget)
                 rigtree_planner.rigtree.vertices_closed = ...
                     [rigtree_planner.rigtree.vertices_closed; q_new];
             end
@@ -188,70 +169,53 @@ while (true)
         break;
     end
     
-    %% Execution and Logging %%
+    %% Plan Execution %%
     
     % Find and draw the most informative path.
-    start_vertex = rigtree_planner.rigtree.vertices(q_best_idx);
-    current_path = rigtree_planner.tracePath(q_best_idx);
-    
-    % Update metrics for the planned path.
-    % We need to go through all points in the path and re-compute the
-    % metrics using real measurements.
-    %disp(toc(t_plan));
-    planning_time = planning_time + toc(t_plan);
+    q_start = rigtree_planner.rigtree.vertices(q_best_idx);
+    path_current = rigtree_planner.tracePath(q_best_idx);
 
-    for l = 1:size(current_path,2)
-        
+    % Create polynomial trajectory through the control points.
+    trajectory = ...
+        plan_path_waypoints(path_current, ...
+        planning_parameters.max_vel, planning_parameters.max_acc);
+    
+    % Sample trajectory to find locations to take measurements at.
+    [times_meas, points_meas, ~, ~] = ...
+        sample_trajectory(trajectory, 1/planning_parameters.measurement_frequency);
+
+    % Update metrics for the planned path.
+    % Take measurements along path, updating the grid map.
+    for i = 1:size(points_meas,1)
+
         % Budget has been spent.
-        if (current_path(l).cost > planning_parameters.time_budget)
-            current_path = current_path(1:l-1);
+        if ((time_elapsed + times_meas(i)) > planning_parameters.time_budget)
+            points_meas = points_meas(1:i-1,:);
+            times_meas = times_meas(1:i-1);
             budget_spent = 1;
             break;
         end
-        
-        % Take a real measurement at a viewpoint using the reference bitmap.
-        [grid_map, ~] = take_measurement_at_viewpoint(current_path(l).location, ...
-            current_path(l).location, grid_map, ground_truth, map_parameters, planning_parameters);
 
-        logger.classification_rate = [logger.classification_rate; ...
-            get_map_class_rate(grid_map, map_parameters)];
-        logger.entropy = [logger.entropy; get_map_entropy(grid_map)];
-        logger.f1_score = [logger.f1_score; get_map_f1_score(grid_map, ...
-            ground_truth, map_parameters)];
-        logger.f2_score = [logger.f2_score; get_map_f2_score(grid_map, ...
-            ground_truth, map_parameters)];
-        logger.f05_score = [logger.f05_score; get_map_f05_score(grid_map, ...
-            ground_truth, map_parameters)];
-        logger.accuracy = [logger.accuracy; get_map_accuracy(grid_map, ...
-            ground_truth, map_parameters)];
-        logger.time_zeroopt = [logger.time_zeroopt; current_path(l).cost];
-        logger.time_nonzeroopt = [logger.time_nonzeroopt; ...
-            current_path(l).cost + planning_time];
+        grid_map = take_measurement_at_point(points_meas(i,:), grid_map, ...
+            ground_truth_map, map_parameters, planning_parameters);
+        metrics.P_traces = [metrics.P_traces; trace(grid_map.P)];
+        metrics.rmses = [metrics.rmses; compute_rmse(grid_map.m, ground_truth_map)];
+        metrics.wrmses = [metrics.wrmses; compute_wrmse(grid_map.m, ground_truth_map)];
+        metrics.mlls = [metrics.mlls; compute_mll(grid_map, ground_truth_map)];
+        metrics.wmlls = [metrics.wmlls; compute_wmll(grid_map, ground_truth_map)];
         
     end
+
+    metrics.points_meas = [metrics.points_meas; points_meas];
+    metrics.times = [metrics.times; time_elapsed + times_meas'];
+    metrics.path_travelled = [metrics.path_travelled; path_optimized];
     
-    logger.path = [logger.path, current_path];
-    
-    if (matlab_parameters.visualize)
-        h_path = rigtree_planner.plotPath(current_path, map_parameters);
-        % Also display the final map.
-        h_grid = imagesc(logodds_to_prob(grid_map));
-    end
-    
+    time_elapsed = time_elapsed + get_trajectory_total_time(trajectory);  
+
     if (budget_spent)
         break;
     end
     
 end
-
-logger.sim_time = toc(t_total);
-
-if (matlab_parameters.visualize)
-    delete(h_tree)
-end
-
-disp(['Planning took ', num2str(logger.sim_time), 's.']);
-disp(['Path cost: ', num2str(rigtree_planner.rigtree.vertices(q_best_idx).cost)]);
-disp(['Map entropy: ', num2str(rigtree_planner.rigtree.vertices(q_best_idx).information)]);
 
 end
