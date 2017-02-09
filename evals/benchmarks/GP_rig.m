@@ -99,7 +99,7 @@ while (true)
     
     for j = 1:500
         
-        % Sample configuration space of UAV and find nearest node.
+        % Sample configuration space and find nearest node.
         x_samp = rigtree_planner.sampleLocation();
         [q_nearest, ~] = rigtree_planner.findNearestVertex(x_samp);
         x_feasible = rigtree_planner.stepToLocation(q_nearest.location, x_samp);

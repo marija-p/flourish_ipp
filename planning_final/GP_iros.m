@@ -85,9 +85,10 @@ P_trace_init = trace(grid_map.P);
 P_trace_prev = P_trace_init;
 point_prev = point_init;
 time_elapsed = 0;
+budget_spent = 0;
 metrics = initialize_metrics();
 
-while (time_elapsed < planning_parameters.time_budget)
+while (true)
     
     %% Planning %%
     
@@ -100,7 +101,7 @@ while (time_elapsed < planning_parameters.time_budget)
     %% STEP 2. Path optimization.
     if (strcmp(optimization_parameters.opt_method, 'cmaes'))
         path_optimized = optimize_with_cmaes(path, grid_map, map_parameters, ...
-            planning_parameters, optimization_parameters);
+            planning_parameters, optimization_parameters, time_elapsed);
             %obj = compute_objective(path_optimized, grid_map, map_parameters, planning_parameters);
             %disp(['Objective after optimization: ', num2str(obj)]);
     elseif (strcmp(optimization_parameters.opt_method, 'fmc'))
@@ -122,6 +123,15 @@ while (time_elapsed < planning_parameters.time_budget)
 
     % Take measurements along path, updating the grid map.
     for i = 1:size(points_meas,1)
+        
+        % Budget has been spent.
+        if ((time_elapsed + times_meas(i)) > planning_parameters.time_budget)
+            points_meas = points_meas(1:i-1,:);
+            times_meas = times_meas(1:i-1);
+            budget_spent = 1;
+            break;
+        end
+        
         grid_map = take_measurement_at_point(points_meas(i,:), grid_map, ...
             ground_truth_map, map_parameters, planning_parameters);
         metrics.P_traces = [metrics.P_traces; trace(grid_map.P)];
@@ -148,6 +158,10 @@ while (time_elapsed < planning_parameters.time_budget)
     
     point_prev = path_optimized(end,:); % End of trajectory (not last meas. point!)
     time_elapsed = time_elapsed + get_trajectory_total_time(trajectory);  
+
+    if (budget_spent)
+        break;
+    end
     
 end
 

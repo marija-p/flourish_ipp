@@ -3,7 +3,7 @@ function [matlab_params, planning_params, ...
 % Loads default parameters for IROS2017 IPP algorithms.
 
 % Random number generator
-matlab_params.seed_num = 3;
+matlab_params.seed_num = 1;
 matlab_params.visualize = 0;
 
 % Coefficients for the exponential height-dependant sensor variance model
@@ -17,7 +17,7 @@ planning_params.min_height = 1;
 planning_params.max_height = 26;
 planning_params.max_vel = 5;        % [m/s]
 planning_params.max_acc = 3;        % [m/s^2]
-planning_params.time_budget = 250;  % [s]
+planning_params.time_budget = 200;  % [s]
 
 % Parameter to control exploration-exploitation trade-off in objective
 planning_params.lambda = 0.001;
@@ -29,7 +29,7 @@ planning_params.measurement_frequency = 0.1;
 planning_params.control_points = 5;
 
 % Number of lattice points at lowest altitude level
-planning_params.lattice_min_height_points = 16;
+planning_params.lattice_min_height_points = 9;
 % Distance between successive altitude levels on the lattice
 planning_params.lattice_height_increment = 8;
 

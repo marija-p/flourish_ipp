@@ -1,5 +1,5 @@
 function [path_optimized] = optimize_with_cmaes(path, grid_map, map_parameters, ...
-    planning_parameters, optimization_parameters)
+    planning_parameters, optimization_parameters, time_elapsed)
 % Optimizes a polynomial path (defined by control points) using Covariance
 % Matrix Adaptation Evolutionary Strategy (CMA-ES).
 % ---
@@ -15,7 +15,7 @@ opt.DispFinal = 'off';
 opt.LogModulo = 0;
 opt.TolFun = 1e-9;
 opt.IncPopSize = 1; %% Check this
-opt.PopSize = 30;
+opt.PopSize = 25;
 opt.SaveVariables = 'off';
 opt.MaxIter = optimization_parameters.max_iters;
 opt.Seed = randi(2^10);
