@@ -9,7 +9,7 @@ classdef RIGTree
         space = [-15 15 -15 15 1 26];
         
         % RRT expansion step size
-        q_delta = 8;
+        q_delta = 10;
         
         % Tree structure
         rigtree = struct('vertices', [],'numvertices',[], 'edges',[], ...
@@ -181,9 +181,6 @@ classdef RIGTree
         % Re-initializes the tree to default values.
         function [self] = resetTree(self)
             
-            self.start = [7.5, 7.5, 8.66];
-            self.space = [-15 15 -15 15 1 26];
-            self.q_delta = 4;
             self.rigtree.vertices = [];
             self.rigtree.numvertices = [];
             self.rigtree.edges = [];

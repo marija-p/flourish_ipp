@@ -90,6 +90,7 @@ if (matlab_parameters.visualize)
     hold on 
 end
 
+
 %% Planning-Execution Loop %%
 while (true)
     
@@ -104,7 +105,7 @@ while (true)
     obj_best = Inf;
     
     %% Sub-Tree Planning %%
-    for j = 1:300
+    for j = 1:500
         
         % Sample configuration space and find nearest node.
         x_samp = rigtree_planner.sampleLocation();
