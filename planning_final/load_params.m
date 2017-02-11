@@ -20,7 +20,7 @@ planning_params.max_acc = 3;        % [m/s^2]
 planning_params.time_budget = 200;  % [s]
 
 % Parameter to control exploration-exploitation trade-off in objective
-planning_params.lambda = 0.001;
+planning_params.lambda = 0.01;
 
 % Frequency at which to take measurements along a path [Hz]
 planning_params.measurement_frequency = 0.1;

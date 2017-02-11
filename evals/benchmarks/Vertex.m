@@ -14,14 +14,23 @@ classdef Vertex
     methods
         
         % Evaluates informative objective at a vertex.
-        function [objective, grid_map] = ...
-                evaluateObjective(self, tree, map_parameters, planning_parameters)
+        function self = evaluateObjective(self, q_near_idx, tree, grid_map, ...
+                map_parameters, planning_parameters)
+            
+            % Add current vertex to the tree.
+            tree.rigtree.vertices = ...
+                [tree.rigtree.vertices; self];
+            tree.rigtree.numvertices = ...
+                tree.rigtree.numvertices + 1;
+            tree.rigtree.edges = [tree.rigtree.edges; ...
+                tree.addEdge(q_near_idx, self)];
             
             % Find path to current vertex in tree.
-            control_points = tree.tracePath(self);
+            control_vertices = tree.tracePath(tree.rigtree.numvertices);
+            control_points = tree.getVertexLocations(control_vertices);
             trajectory = ...
                 plan_path_waypoints(control_points, ...
-                    planning_parameters.max_vel, planning_parameters.max_acc);
+                planning_parameters.max_vel, planning_parameters.max_acc);
 
             % Sample trajectory to find locations to take measurements at.
             [~, points_meas, ~, ~] = ...
@@ -58,7 +67,7 @@ classdef Vertex
             % Formulate objective.
             self.gain = P_i - P_f;
             self.cost = get_trajectory_total_time(trajectory);
-            self.objective = -gain*exp(-planning_parameters.lambda*cost);
+            self.objective = -self.gain*exp(-planning_parameters.lambda*self.cost);
 
         end
         

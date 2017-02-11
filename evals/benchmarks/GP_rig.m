@@ -1,11 +1,14 @@
-function [metrics] = GP_rig(matlab_parameters, planning_parameters, ...
-    optimization_parameters, map_parameters, ground_truth_map)
+function [metrics, grid_map] = GP_rig(matlab_parameters, planning_parameters, ...
+    map_parameters, ground_truth_map)
 % Main program for IROS2017 RIG-tree algorithm benchmark.
 %
 % M Popovic 2017
 %
 
 % Initialize variables.
+
+%matlab_parameters.visualize = 1;
+planning_parameters = rmfield(planning_parameters, 'control_points');   % For plotting.
 
 % Get map dimensions [cells]
 dim_x = map_parameters.dim_x;
@@ -66,10 +69,7 @@ if Lchol    % L contains chol decomp => use Cholesky parameters (alpha,sW,L)
   grid_map.P = Kss + Ks'*LKs;                    % predictive variances
 end
 
-Y_sigma = sqrt(diag(grid_map.P)');
-P_post = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
-P_trace_init = trace(grid_map.P);
-
+budget_spent = 0;
 time_elapsed = 0;
 metrics = initialize_metrics();
 
@@ -78,17 +78,22 @@ rigtree_planner = RIGTree();
 q_start = Vertex();
 q_start.location = point_init;
 
-% Initialize best vertex.
-obj_best = Inf;
-
-%% Planning %%
-% Timer for total simulation time
-t_total = tic;
-
-h_tree = [];
+if (matlab_parameters.visualize)
+    fig1 = figure;
+    axis([-15 15 -15 15 0 28])
+    xlabel('x (m)')
+    ylabel('y (m)')
+    zlabel('z (m)')
+    h_tree = [];
+    grid on
+    grid minor
+    hold on 
+end
 
 %% Planning-Execution Loop %%
 while (true)
+    
+ %   keyboard
     
     % Initialize a tree.
     rigtree_planner = rigtree_planner.resetTree();
@@ -96,8 +101,10 @@ while (true)
     rigtree_planner.rigtree.numvertices = 1;
     rigtree_planner.setStart(q_start);
     found_best_node = 0;
+    obj_best = Inf;
     
-    for j = 1:500
+    %% Sub-Tree Planning %%
+    for j = 1:300
         
         % Sample configuration space and find nearest node.
         x_samp = rigtree_planner.sampleLocation();
@@ -121,7 +128,7 @@ while (true)
             q_new.location = rigtree_planner.stepToLocation(q_near.location, x_feasible);
             
             % Calculate new information and cost.
-            [obj_new, grid_map_new] = q_new.evaluateObjective(rigtree_planner, ...
+            q_new = q_new.evaluateObjective(neighbors_idx(i), rigtree_planner, grid_map, ...
                 map_parameters, planning_parameters);
             
             % Check if target vertex should be pruned.
@@ -140,9 +147,9 @@ while (true)
             %end
             
             % Update best solution.
-            if (obj_new < obj_best)
+            if (q_new.objective < obj_best)
                 q_best_idx = rigtree_planner.rigtree.numvertices;
-                obj_best = obj_new;
+                obj_best = q_new.objective;
                 found_best_node = 1;
             end
             
@@ -153,11 +160,11 @@ while (true)
             end
             
             if (matlab_parameters.visualize)
-                point1 = env_to_grid_coordinates(q_near.location, map_parameters);
-                point2 = env_to_grid_coordinates(q_new.location, map_parameters);
+                point1 = q_near.location;
+                point2 = q_new.location;
                 h_tree = [h_tree, plot3([point1(1), point2(1)], ...
                     [point1(2), point2(2)], ...
-                    [point1(3), point2(3)], 'Color', 'g', 'LineWidth', 1)];
+                    [point1(3), point2(3)], 'Color', [0.7, 0.7, 0.7], 'LineWidth', 1)];
                 drawnow;
             end
             
@@ -169,11 +176,12 @@ while (true)
         break;
     end
     
-    %% Plan Execution %%
+    %% Sub-tree Plan Execution %%
     
     % Find and draw the most informative path.
     q_start = rigtree_planner.rigtree.vertices(q_best_idx);
-    path_current = rigtree_planner.tracePath(q_best_idx);
+    vertices_current = rigtree_planner.tracePath(q_best_idx);
+    path_current = rigtree_planner.getVertexLocations(vertices_current);
 
     % Create polynomial trajectory through the control points.
     trajectory = ...
@@ -208,11 +216,12 @@ while (true)
 
     metrics.points_meas = [metrics.points_meas; points_meas];
     metrics.times = [metrics.times; time_elapsed + times_meas'];
-    metrics.path_travelled = [metrics.path_travelled; path_optimized];
+    metrics.path_travelled = [metrics.path_travelled; path_current];
     
     time_elapsed = time_elapsed + get_trajectory_total_time(trajectory);  
 
     if (budget_spent)
+        keyboard
         break;
     end
     
