@@ -1,7 +1,7 @@
 clear all; close all; clc;
 
 % Number of trials to run
-num_trials = 1;
+num_trials = 2;
 
 % Environment parameters
 cluster_radius = 3;
@@ -29,7 +29,6 @@ for t = 1:num_trials
         [metrics, grid_map] = GP_iros(matlab_params, ...
             planning_params, opt_params, map_params, ground_truth_map);
         logger.(['trial', num2str(t)]).([opt_methods{i}]) = metrics;
-        
     end
     
     logger.(['trial', num2str(t)]).num = t;

@@ -31,6 +31,6 @@ end
 
 lattice = grid_to_env_coordinates(lattice, map_parameters);
 
-plot3(lattice(:,1), lattice(:,2), lattice(:,3), '.k');
+%plot3(lattice(:,1), lattice(:,2), lattice(:,3), '.k');
  
 end

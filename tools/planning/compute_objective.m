@@ -50,8 +50,10 @@ end
 
 % Formulate objective.
 gain = P_i - P_f;
-cost = get_trajectory_total_time(trajectory);
-obj = -gain*exp(-planning_parameters.lambda*cost);
+%cost = get_trajectory_total_time(trajectory);
+%obj = -gain*exp(-planning_parameters.lambda*cost);
+cost = max(get_trajectory_total_time(trajectory), 1/planning_parameters.measurement_frequency);
+obj = -gain/cost;
 
 %disp(['Measurements = ', num2str(i)])
 %disp(['Gain = ', num2str(gain)])
