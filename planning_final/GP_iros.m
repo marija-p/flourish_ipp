@@ -101,7 +101,7 @@ while (true)
     %% STEP 2. Path optimization.
     if (strcmp(optimization_parameters.opt_method, 'cmaes'))
         path_optimized = optimize_with_cmaes(path, grid_map, map_parameters, ...
-            planning_parameters, optimization_parameters, time_elapsed);
+            planning_parameters, optimization_parameters);
             %obj = compute_objective(path_optimized, grid_map, map_parameters, planning_parameters);
             %disp(['Objective after optimization: ', num2str(obj)]);
     elseif (strcmp(optimization_parameters.opt_method, 'fmc'))

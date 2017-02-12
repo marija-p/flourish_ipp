@@ -20,8 +20,8 @@ point_prev = point_init;
 path = point_init;
 
 % First measurement.
-grid_map = predict_map_update(point_init, grid_map, ...
-    map_parameters, planning_parameters);
+%grid_map = predict_map_update(point_init, grid_map, ...
+%    map_parameters, planning_parameters);
         
 while (planning_parameters.control_points > size(path, 1))
     
