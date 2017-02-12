@@ -146,8 +146,10 @@ while (true)
     disp(['Trace after execution: ', num2str(trace(grid_map.P))]);
     disp(['Time after execution: ', num2str(get_trajectory_total_time(trajectory))]);
     gain = P_trace_prev - trace(grid_map.P);
-    cost = get_trajectory_total_time(trajectory);
-    disp(['Objective after execution: ', num2str(-gain*exp(-planning_parameters.lambda*cost))]);
+    cost = max(get_trajectory_total_time(trajectory), 1/planning_parameters.measurement_frequency);
+    disp(['Objective after execution: ', num2str(-gain/cost)]);
+    %cost = get_trajectory_total_time(trajectory);
+    %disp(['Objective after execution: ', num2str(-gain*exp(-planning_parameters.lambda*cost))]);
 
     metrics.points_meas = [metrics.points_meas; points_meas];
     metrics.times = [metrics.times; time_elapsed + times_meas'];

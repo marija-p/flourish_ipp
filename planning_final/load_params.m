@@ -29,7 +29,7 @@ planning_params.measurement_frequency = 0.1;
 planning_params.control_points = 5;
 
 % Number of lattice points at lowest altitude level
-planning_params.lattice_min_height_points = 9;
+planning_params.lattice_min_height_points = 16;
 % Distance between successive altitude levels on the lattice
 planning_params.lattice_height_increment = 8;
 
