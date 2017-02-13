@@ -50,10 +50,13 @@ end
 
 % Formulate objective.
 gain = P_i - P_f;
-%cost = get_trajectory_total_time(trajectory);
-%obj = -gain*exp(-planning_parameters.lambda*cost);
-cost = max(get_trajectory_total_time(trajectory), 1/planning_parameters.measurement_frequency);
-obj = -gain/cost;
+if (strcmp(planning_parameters.obj, 'exponential'))
+    cost = get_trajectory_total_time(trajectory);
+    obj = -gain*exp(-planning_parameters.lambda*cost);
+elseif (strcmp(planning_parameters.obj, 'rate'))
+    cost = max(get_trajectory_total_time(trajectory), 1/planning_parameters.measurement_frequency);
+    obj = -gain/cost;
+end
 
 %disp(['Measurements = ', num2str(i)])
 %disp(['Gain = ', num2str(gain)])

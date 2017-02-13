@@ -3,7 +3,7 @@ function [matlab_params, planning_params, ...
 % Loads default parameters for IROS2017 IPP algorithms.
 
 % Random number generator
-matlab_params.seed_num = 1;
+matlab_params.seed_num = 2;
 matlab_params.visualize = 0;
 
 % Coefficients for the exponential height-dependant sensor variance model
@@ -38,6 +38,9 @@ planning_params.lattice_height_increment = 8;
 planning_params.lower_threshold = 0.4;
 % Whether to use the threshold value for active planning
 planning_params.use_threshold = 1;
+
+% Objective function for planning
+planning_params.obj = 'exponential';    % 'rate'/'exponential'
 
 opt_params.max_iters = 45;
 opt_params.opt_method = 'none'; % 'fmc'/cmaes'/'none'

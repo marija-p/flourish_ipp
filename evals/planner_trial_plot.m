@@ -7,13 +7,13 @@ methods = fieldnames(logger.trial1);
 
 for i = 1:length(methods)-1
     
-    plot_metrics(logger.trial1.(methods{i}))
+    plot_metrics(logger.trial2.(methods{i}))
     
 end
 
 if (show_legend)
-    h_legend = legend('No opt.', 'CMA-ES', ...
-        'fmincon', ...
+    h_legend = legend('No opt.', 'fmincon', ...
+        'CMA-ES', ...
         'FontName', 'HelveticaNarrow');
 end
 

@@ -1,7 +1,7 @@
-clear all; close all; clc;
+%clear all; close all; clc;
 
 % Number of trials to run
-num_trials = 2;
+num_trials = 3;
 
 % Environment parameters
 cluster_radius = 3;
@@ -11,14 +11,14 @@ dim_y_env = 30;
 [matlab_params, planning_params, ...
 	opt_params, map_params] = load_params(dim_x_env, dim_y_env);
 
-opt_methods = {'none', 'cmaes', 'fmc'};
+opt_methods = {'none', 'fmc', 'cmaes'};
 %opt_methods = {'cmaes'};
 
 logger = struct;
 
-for t = 1:num_trials
+for t = 2:num_trials
     
-    rng(matlab_params.seed_num, 'twister');
+    rng(t, 'twister');
     
     % Generate (continuous) ground truth map.
     ground_truth_map = create_continuous_map(map_params.dim_x, ...

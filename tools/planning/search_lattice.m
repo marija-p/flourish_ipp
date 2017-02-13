@@ -19,7 +19,7 @@ P_trace_prev = trace(grid_map.P);
 point_prev = point_init;
 path = point_init;
 
-% First measurement.
+% First measurement?
 %grid_map = predict_map_update(point_init, grid_map, ...
 %    map_parameters, planning_parameters);
         
@@ -37,11 +37,14 @@ while (planning_parameters.control_points > size(path, 1))
         P_trace = trace(grid_map_eval.P);
         
         gain = P_trace_prev - P_trace;
-        cost = max(pdist([point_prev; point_eval])/planning_parameters.max_vel, ...
-            1/planning_parameters.measurement_frequency);
-        obj = -gain/cost;
-        %cost = pdist([point_prev; point_eval])/planning_parameters.max_vel;
-        %obj = -gain*exp(-planning_parameters.lambda*cost);
+        if (strcmp(planning_parameters.obj, 'rate'))
+            cost = max(pdist([point_prev; point_eval])/planning_parameters.max_vel, ...
+                1/planning_parameters.measurement_frequency);
+            obj = -gain/cost;
+        elseif (strcmp(planning_parameters.obj, 'exponential'))
+            cost = pdist([point_prev; point_eval])/planning_parameters.max_vel;
+            obj = -gain*exp(-planning_parameters.lambda*cost);
+        end
         
         % Update best solution.
         if (obj < obj_min)
