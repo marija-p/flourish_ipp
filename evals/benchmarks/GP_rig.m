@@ -8,7 +8,7 @@ function [metrics, grid_map] = GP_rig(matlab_parameters, planning_parameters, ..
 % Initialize variables.
 
 %matlab_parameters.visualize = 1;
-planning_parameters = rmfield(planning_parameters, 'control_points');   % For plotting.
+planning_parameters = rmfield(planning_parameters, 'control_points');   % For plotting
 
 % Get map dimensions [cells]
 dim_x = map_parameters.dim_x;
