@@ -40,7 +40,7 @@ planning_params.lower_threshold = 0.4;
 planning_params.use_threshold = 1;
 
 % Objective function for planning
-planning_params.obj = 'exponential';    % 'rate'/'exponential'
+planning_params.obj = 'rate';    % 'rate'/'exponential'
 
 opt_params.max_iters = 45;
 opt_params.opt_method = 'none'; % 'fmc'/cmaes'/'none'
