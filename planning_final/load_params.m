@@ -23,7 +23,7 @@ planning_params.time_budget = 200;  % [s]
 planning_params.lambda = 0.01;
 
 % Frequency at which to take measurements along a path [Hz]
-planning_params.measurement_frequency = 0.1;
+planning_params.measurement_frequency = 0.15;
 
 % Number of control points for a polynomial (start point fixed)
 planning_params.control_points = 5;

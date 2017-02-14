@@ -8,7 +8,7 @@ methods = fieldnames(logger.trial2);
 
 for i = 2:length(methods)
     
-    plot_metrics(logger.trial3.(methods{i}))
+    plot_metrics(logger.trial2.(methods{i}))
     
 end
 

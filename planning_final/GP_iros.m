@@ -111,7 +111,6 @@ while (true)
         path_optimized = path;
     end
     
-
     %% Plan Execution %%
     % Create polynomial trajectory through the control points.
     trajectory = ...

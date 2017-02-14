@@ -38,14 +38,10 @@ while (planning_parameters.control_points > size(path, 1))
         
         gain = P_trace_prev - P_trace;
         
+        path_eval = [path; point
         if (strcmp(planning_parameters.obj, 'rate'))
             cost = max(pdist([point_prev; point_eval])/planning_parameters.max_vel, ...
                 1/planning_parameters.measurement_frequency);
-            %path_eval = [path; point_eval];
-            %trajectory = plan_path_waypoints(path_eval, ...
-            %    planning_parameters.max_vel, planning_parameters.max_acc);
-            %cost = max(get_trajectory_total_time(trajectory), ...
-            %    1/planning_parameters.measurement_frequency);
             obj = -gain/cost;
         elseif (strcmp(planning_parameters.obj, 'exponential'))
             cost = pdist([point_prev; point_eval])/planning_parameters.max_vel;

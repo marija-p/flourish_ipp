@@ -11,8 +11,8 @@ dim_y_env = 30;
 [matlab_params, planning_params, ...
 	opt_params, map_params] = load_params(dim_x_env, dim_y_env);
 
-opt_methods = {'none', 'fmc'};
-%opt_methods = {'cmaes'};
+%opt_methods = {'none', 'fmc'};
+opt_methods = {'cmaes'};
 use_rig = 0; subtree_iters = 500;
 use_coverage = 0; coverage_altitude = 8.66; coverage_vel = 0.78;
 
