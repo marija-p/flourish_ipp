@@ -16,7 +16,7 @@ LBounds = repmat(LBounds, size(path,1)-1, 1);
 UBounds = repmat(UBounds, size(path,1)-1, 1);
 
 % Set optimization options.
-options = optimoptions('fmincon','Display','iter','Algorithm','sqp', 'StepTolerance', 1e-07);
+options = optimoptions('fmincon','Display','iter','Algorithm','interior-point','StepTolerance', 1e-11);
 
 % Remove starting point (as this is fixed).
 path_initial = reshape(path(2:end,:)', [], 1);
