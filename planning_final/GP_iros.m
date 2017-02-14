@@ -120,7 +120,7 @@ while (true)
     % Sample trajectory to find locations to take measurements at.
     [times_meas, points_meas, ~, ~] = ...
         sample_trajectory(trajectory, 1/planning_parameters.measurement_frequency);
-
+    
     % Take measurements along path, updating the grid map.
     for i = 1:size(points_meas,1)
         
@@ -139,6 +139,7 @@ while (true)
         metrics.wrmses = [metrics.wrmses; compute_wrmse(grid_map.m, ground_truth_map)];
         metrics.mlls = [metrics.mlls; compute_mll(grid_map, ground_truth_map)];
         metrics.wmlls = [metrics.wmlls; compute_wmll(grid_map, ground_truth_map)];
+        
     end
 
     Y_sigma = sqrt(diag(grid_map.P)');

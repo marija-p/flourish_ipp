@@ -3,7 +3,7 @@
 %clear all;
 close all; clc
 show_legend = 1;
-methods = fieldnames(logger.trial1);
+methods = fieldnames(logger.trial2);
 
 for i = 1:length(methods)-1
     

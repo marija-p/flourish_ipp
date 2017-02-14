@@ -1,7 +1,7 @@
 %clear all; close all; clc;
 
 % Number of trials to run
-num_trials = 3;
+num_trials = 2;
 
 % Environment parameters
 cluster_radius = 3;
@@ -11,7 +11,7 @@ dim_y_env = 30;
 [matlab_params, planning_params, ...
 	opt_params, map_params] = load_params(dim_x_env, dim_y_env);
 
-opt_methods = {'none', 'fmc', 'cmaes'};
+opt_methods = {'none', 'fmc'};
 %opt_methods = {'cmaes'};
 
 logger = struct;
