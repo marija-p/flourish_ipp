@@ -1,5 +1,5 @@
 function [metrics, grid_map] = GP_rig(matlab_parameters, planning_parameters, ...
-    map_parameters, ground_truth_map)
+    map_parameters, subtree_iters, ground_truth_map)
 % Main program for IROS2017 RIG-tree algorithm benchmark.
 %
 % M Popovic 2017
@@ -105,7 +105,7 @@ while (true)
     obj_best = Inf;
     
     %% Sub-Tree Planning %%
-    for j = 1:500
+    for j = 1:subtree_iters
         
         % Sample configuration space and find nearest node.
         x_samp = rigtree_planner.sampleLocation();
@@ -186,8 +186,7 @@ while (true)
 
     % Create polynomial trajectory through the control points.
     trajectory = ...
-        plan_path_waypoints(path_current, ...
-        planning_parameters.max_vel, planning_parameters.max_acc);
+        plan_path_waypoints(path_current, coverage_vel, planning_parameters.max_acc);
     
     % Sample trajectory to find locations to take measurements at.
     [times_meas, points_meas, ~, ~] = ...

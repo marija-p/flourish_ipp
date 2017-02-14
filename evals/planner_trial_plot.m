@@ -3,11 +3,12 @@
 %clear all;
 close all; clc
 show_legend = 1;
+
 methods = fieldnames(logger.trial2);
 
-for i = 1:length(methods)-1
+for i = 2:length(methods)
     
-    plot_metrics(logger.trial2.(methods{i}))
+    plot_metrics(logger.trial3.(methods{i}))
     
 end
 

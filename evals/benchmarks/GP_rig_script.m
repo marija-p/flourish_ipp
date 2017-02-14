@@ -10,6 +10,7 @@ dim_y_env = 30;
 
 [matlab_params, planning_params, ...
 	opt_params, map_params] = load_params(dim_x_env, dim_y_env);
+subtree_iters = 500;
 
 logger = struct;
 
@@ -22,7 +23,7 @@ for t = 1:num_trials
         map_params.dim_y, cluster_radius);
     
     [metrics, grid_map] = GP_rig(matlab_params, ...
-        planning_params, map_params, ground_truth_map);
+        planning_params, map_params, subtree_iters, ground_truth_map);
     logger.(['trial', num2str(t)]).('rig') = metrics;
     logger.(['trial', num2str(t)]).num = t;
     
