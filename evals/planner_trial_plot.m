@@ -5,11 +5,11 @@ clc
 show_legend = 1;
 
 figure;
-methods = fieldnames(logger.trial11);
+methods = fieldnames(logger.trial1);
 
 for i = 2:length(methods)
     
-    plot_metrics(logger.trial11.(methods{i}))
+    plot_metrics(logger.trial1.(methods{i}))
     
 end
 

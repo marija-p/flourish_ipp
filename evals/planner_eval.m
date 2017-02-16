@@ -1,7 +1,7 @@
 %clear all; close all; clc;
 
 % Number of trials to run
-num_trials = 10;
+num_trials = 30;
 
 % Environment parameters
 max_cluster_radius = 5;
@@ -19,7 +19,7 @@ use_coverage = 1; coverage_altitude = 8.66; coverage_vel = 0.78;
 
 %logger = struct;
 
-for t = 1:num_trials
+for t = 21:num_trials
    
     logger.(['trial', num2str(t)]).num = t;
     

@@ -74,6 +74,19 @@ median_wrmses = median(wrmses,3);
 median_mlls = median(mlls,3);
 median_wmlls = median(wmlls,3);
 
+% Print average values.
+disp(methods(2:end))
+disp('Mean P traces: ')
+disp(sum(mean_P_traces, 2, 'omitnan')./size(mean_P_traces,2));
+disp('Mean RMSEs: ')
+disp(sum(mean_rmses, 2, 'omitnan')./size(mean_rmses,2));
+disp('Mean WRMSEs: ')
+disp(sum(mean_wrmses, 2, 'omitnan')./size(mean_wrmses,2));
+disp('Mean MLLs: ')
+disp(sum(mean_mlls, 2, 'omitnan')./size(mean_mlls,2));
+disp('Mean WMLLs: ')
+disp(sum(mean_wmlls, 2, 'omitnan')./size(mean_wmlls,2));
+
 % Find confidence intervals
 % http://ch.mathworks.com/matlabcentral/answers/159417-how-to-calculate-the-confidence-interva
 SEM_P_traces = [];
@@ -100,10 +113,10 @@ end
 % Symmetric
 ts = tinv(0.95, length(trials)-1);
 
-colours = [0    0.4470    0.7410;
-    0.8500    0.3250    0.0980;
-    0.9290    0.6940    0.1250;
-    0.4940    0.1840    0.5560;
+colours = [0.8500    0.3250    0.0980;
+    0    0.4470    0.7410;
+  %  0.9290    0.6940    0.1250;
+ %   0.4940    0.1840    0.5560;
     0.4660    0.6740    0.1880];
   %   0.6350    0.0780    0.1840;
    %  0.3010    0.7450    0.9330;
@@ -116,19 +129,20 @@ colours = [0    0.4470    0.7410;
 if (do_plot)
         
     figure;
+    plot_ind = [2,4,5];
+    
     %% Trace of P %%
     subplot(1,3,1)
     hold on
     h = zeros(length(methods)-1,1);
-    boundedline(time_vector, mean_P_traces(1,:), SEM_P_traces(1,:)*ts, ...
-        time_vector, mean_P_traces(2,:), SEM_P_traces(2,:)*ts, ...
-        time_vector, mean_P_traces(3,:), SEM_P_traces(3,:)*ts, ... 
+    boundedline( ... %time_vector, mean_P_traces(1,:), SEM_P_traces(1,:)*ts, ...
+        time_vector, mean_P_traces(2,:), SEM_P_traces(2,:)*ts, ... %   time_vector, mean_P_traces(3,:), SEM_P_traces(3,:)*ts, 
         time_vector, mean_P_traces(4,:), SEM_P_traces(4,:)*ts, ...
         time_vector, mean_P_traces(5,:), SEM_P_traces(5,:)*ts, ...
         'alpha', 'cmap', colours, 'transparency', transparency);
      
-    for i = 1:5
-        P_trace = mean_P_traces(i,:);
+    for i = 1:3
+        P_trace = mean_P_traces(plot_ind(i),:);
         h(i) = plot(time_vector, P_trace, 'LineWidth', 1, 'Color', colours(i,:));
     end
     
@@ -160,15 +174,14 @@ if (do_plot)
     %% RMSE %%
     subplot(1,3,2)
     hold on
-    boundedline(time_vector, mean_rmses(1,:), SEM_rmses(1,:)*ts, ...
-        time_vector, mean_rmses(2,:), SEM_rmses(2,:)*ts, ...
-        time_vector, mean_rmses(3,:), SEM_rmses(3,:)*ts, ... 
+    boundedline(... %time_vector, mean_rmses(1,:), SEM_rmses(1,:)*ts, ...
+        time_vector, mean_rmses(2,:), SEM_rmses(2,:)*ts, ... %time_vector, mean_rmses(3,:), SEM_rmses(3,:)*ts, ... 
         time_vector, mean_rmses(4,:), SEM_rmses(4,:)*ts, ...
         time_vector, mean_rmses(5,:), SEM_rmses(5,:)*ts, ...
         'alpha', 'cmap', colours, 'transparency', transparency);
      
-    for i = 1:5
-        rmse = mean_rmses(i,:);
+    for i = 1:3
+        rmse = mean_rmses(plot_ind(i),:);
         h(i) = plot(time_vector, rmse, 'LineWidth', 1, 'Color', colours(i,:));
     end
     
@@ -197,15 +210,14 @@ if (do_plot)
     %% MLL %%
     subplot(1,3,3)
     hold on
-    boundedline(time_vector, mean_mlls(1,:), SEM_mlls(1,:)*ts, ...
-        time_vector, mean_mlls(2,:), SEM_mlls(2,:)*ts, ...
-        time_vector, mean_mlls(3,:), SEM_mlls(3,:)*ts, ... 
+    boundedline( ... %time_vector, mean_mlls(1,:), SEM_mlls(1,:)*ts, ...
+        time_vector, mean_mlls(2,:), SEM_mlls(2,:)*ts, ... %time_vector, mean_mlls(3,:), SEM_mlls(3,:)*ts, ... 
         time_vector, mean_mlls(4,:), SEM_mlls(4,:)*ts, ...
         time_vector, mean_mlls(5,:), SEM_mlls(5,:)*ts, ...
         'alpha', 'cmap', colours, 'transparency', transparency);
      
-    for i = 1:5
-        mll = mean_mlls(i,:);
+    for i = 1:3
+        mll = mean_mlls(plot_ind(i),:);
         h(i) = plot(time_vector, mll, 'LineWidth', 1, 'Color', colours(i,:));
     end
     
@@ -236,13 +248,12 @@ if (do_plot)
         fig.PaperUnits = 'inches';
         fig.PaperPosition = paper_pos;
         fig.PaperPositionMode = 'manual';
-        print(fig, '-depsc', [file_path, 'methods.eps']);
+        print(fig, '-dpdf', [file_path, 'methods.pdf']);
     end
     
         
     if (show_legend)
-        h_legend = legend(h, 'No opt.', 'CMA-ES', ...
-            'fmincon', 'RIG-tree', 'Coverage', ...
+        h_legend = legend(h, 'CMA-ES', 'RIG-tree', 'Coverage', ...
             'FontName', 'HelveticaNarrow');
         set(h_legend, 'Location', 'SouthOutside');
         set(h_legend, 'orientation', 'horizontal')
@@ -251,4 +262,4 @@ if (do_plot)
   
 end
 
-close all;
+%close all;
