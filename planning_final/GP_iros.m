@@ -107,6 +107,9 @@ while (true)
     elseif (strcmp(optimization_parameters.opt_method, 'fmc'))
         path_optimized = optimize_with_fmc(path, grid_map, map_parameters, ...
             planning_parameters);
+    elseif (strcmp(optimization_parameters.opt_method, 'bo'))
+        path_optimized = optimize_with_bo(path, grid_map, map_parameters, ...
+            planning_parameters);
     else
         path_optimized = path;
     end

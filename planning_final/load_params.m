@@ -43,7 +43,7 @@ planning_params.use_threshold = 1;
 planning_params.obj = 'rate';    % 'rate'/'exponential'
 
 opt_params.max_iters = 45;
-opt_params.opt_method = 'none'; % 'fmc'/cmaes'/'none'
+opt_params.opt_method = 'none'; % 'fmc'/cmaes'/'none'/'bo'
 % Covariances in each search dimension
 opt_params.cov_x = 3;
 opt_params.cov_y = 3;

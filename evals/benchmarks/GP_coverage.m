@@ -1,5 +1,5 @@
 function [metrics, grid_map] = GP_coverage(matlab_parameters, planning_parameters, ...
-    map_parameters, coverage_altitude, ground_truth_map)
+    map_parameters, coverage_altitude, coverage_vel, ground_truth_map)
 % Main program for IROS2017 coverage planning benchmark.
 %
 % M Popovic 2017
@@ -125,7 +125,7 @@ metrics = initialize_metrics();
 % Create polynomial trajectory through the control points.
 trajectory = ...
     plan_path_waypoints(path, ...
-    planning_parameters.max_vel, planning_parameters.max_acc);
+   coverage_vel, planning_parameters.max_acc);
 
 % Sample trajectory to find locations to take measurements at.
 [times_meas, points_meas, ~, ~] = ...

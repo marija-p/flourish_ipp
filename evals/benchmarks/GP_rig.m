@@ -186,7 +186,7 @@ while (true)
 
     % Create polynomial trajectory through the control points.
     trajectory = ...
-        plan_path_waypoints(path_current, coverage_vel, planning_parameters.max_acc);
+        plan_path_waypoints(path_current, planning_parameters.max_vel, planning_parameters.max_acc);
     
     % Sample trajectory to find locations to take measurements at.
     [times_meas, points_meas, ~, ~] = ...

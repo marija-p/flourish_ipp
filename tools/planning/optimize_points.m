@@ -9,4 +9,3 @@ waypoints = [starting_point; waypoints];
 obj = compute_objective(waypoints, grid_map, map_parameters, planning_parameters);
 
 end
-
