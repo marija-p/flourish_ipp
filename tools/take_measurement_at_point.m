@@ -10,7 +10,9 @@ submap = ground_truth_map(submap_coordinates.yd:submap_coordinates.yu, ...
     submap_coordinates.xl:submap_coordinates.xr);
 
 % Downsample submap (measurements) based on altitude.
-%submap = get_downsampled_submap(pos(3), submap);
+submap = get_downsampled_submap(pos(3), submap);
+% Simulate sensor noise effects.
+submap = add_sensor_noise(pos(3), submap, planning_parameters);
 
 % Update grid map, accounting for correlation.
 grid_map = ...

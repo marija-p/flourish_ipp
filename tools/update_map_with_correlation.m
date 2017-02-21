@@ -1,26 +1,36 @@
 function grid_map = ...
-    update_map_with_correlation(pos_env, submap, grid_map, submap_coordinates, ...
+    update_map_with_correlation(pos, submap, grid_map, submap_coordinates, ...
     planning_parameters)
 % Updates grid map at a UAV position using measurements
-% received with height-dependent sensor model.
+% received from a height-dependent sensor model.
+%
+% Inputs:
+% pos: current [x,y,z] UAV position [m] - env. coordinates
+% submap: received measurement (grid)
+% grid_map: current grid map (mean + covariance)
+% submap_coordinates: current FoV in grid map
+% ---
+% Outputs:
+% grid_map
+% ---
+% Marija Popovic 2017
+%
 
-%% Update grid map.
+%% Sensor Model
+% Compute measurement variances.
+var = ones(size(submap))*sensor_model(pos(3), planning_parameters);
+R = diag(reshape(var,[],1));
+% Create measurement model.
+H = construct_H(grid_map.m, submap, submap_coordinates, pos(3));
 
-% Compute variance of measurements.
-var = ones(size(submap))*sensor_model(pos_env(3));
-[submap_ind_x, submap_ind_y] = meshgrid(submap_coordinates.xl:submap_coordinates.xr,...
-        submap_coordinates.yd:submap_coordinates.yu);
-submap_ind = sub2ind(size(grid_map.m),reshape(submap_ind_y,[],1),reshape(submap_ind_x,[],1));
+%% Correlated Fusion
+% Obtain maximum aposteriori estimate using Bayesian Fusion.
+x = reshape(grid_map.m,[],1);
+z = reshape(submap,[],1);
+P = grid_map.P;
+[x,Pf] = KF_update_cholesky(x,P,z-H*x,R,H);
+grid_map.m = reshape(x, size(grid_map.m,1), size(grid_map.m,2));
+grid_map.P = Pf;
 
-% Downsample resolution based on height
-%submap = get_downsampled_submap(height, submap, map_parameters);
-
-%% Perform correlated fusion.
-[grid_map.m, grid_map.P] = fuse_measurements(grid_map.m, grid_map.P, ...
-    submap, var, submap_ind);
-
-%% Perform GP inference.
-%[grid_map.m, grid_map.P] = inferece_with_gp(grid_map.m, grid_map.P, ...
-%    submap, var, submap_ind);
 end
 
