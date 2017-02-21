@@ -221,7 +221,6 @@ while (true)
     time_elapsed = time_elapsed + get_trajectory_total_time(trajectory);  
 
     if (budget_spent)
-        keyboard
         break;
     end
     

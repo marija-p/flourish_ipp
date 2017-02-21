@@ -15,8 +15,8 @@ altitude = [10, 10];
 res = [0, 1];
 plot(altitude, res, 'Color', [0.7500, 0.0980, 0.0980], 'LineStyle', '--');
 hold off
-xlabel('Altitude (m)')
-ylabel('Variance, \sigma')
+xlabel('Altitude, \ith\rm (m)')
+ylabel('Variance, \sigma_{g,i}^2')
 axis([0 25 0 0.075])
 set(gca, ...
     'Box'         , 'off'     , ...
@@ -28,16 +28,20 @@ set(gca, ...
     'XColor'      , [.3 .3 .3], ...
     'YColor'      , [.3 .3 .3], ...
     'YTick'       , 0:0.025:0.075, ...
-    'FontSize'    , 10.5);
+    'FontSize'    , 10.5, ...
+    'FontName'    , 'Times');
 
 grid minor
 
+set(gcf, 'Position', [2823, 502, 339, 281]);
 if (do_print)
     fig = gcf;
-    fig.PaperUnits = 'inches';
+    fig.PaperUnits = 'centimeters';
     fig.PaperPosition = paper_pos;
     fig.PaperPositionMode = 'manual';
-    print(fig, '-depscv ', [file_path, 'sensor_model.eps']);
+   % print(fig, '-depscv ', [file_path, 'sensor_model.eps']);
+   set(fig,'color','w');
+   export_fig sensor_model.eps -painters
 end
 
 % close all;

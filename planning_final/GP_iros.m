@@ -98,6 +98,8 @@ while (true)
     obj = compute_objective(path, grid_map, map_parameters, planning_parameters);
     disp(['Objective before optimization: ', num2str(obj)]);
     
+    tic;
+    
     %% STEP 2. Path optimization.
     if (strcmp(optimization_parameters.opt_method, 'cmaes'))
         path_optimized = optimize_with_cmaes(path, grid_map, map_parameters, ...
@@ -113,6 +115,8 @@ while (true)
     else
         path_optimized = path;
     end
+    
+    disp(toc)
     
     %% Plan Execution %%
     % Create polynomial trajectory through the control points.

@@ -49,6 +49,13 @@ cline(p(:,1), p(:,2), p(:,3), t);
 scatter3(path(:,1), path(:,2), path(:,3), 140, 'xk');
 % Visualize measurements.
 colors_meas = linspace(0, t(end),size(p_meas,1));
+
+% Silly bug with 3 points.
+% https://ch.mathworks.com/matlabcentral/newsreader/view_thread/136731
+if isequal(size(colors_meas),[1 3])
+    colors_meas = colors_meas';
+end
+
 scatter3(p_meas(:,1), p_meas(:,2), p_meas(:,3), 60, colors_meas, 'filled');
 
 xlabel('x (m)')

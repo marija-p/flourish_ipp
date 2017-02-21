@@ -1,7 +1,7 @@
 file_path = '~\PhD\Submissions\asldoc-2017-iros-popovic\images\';
 
 %rescale_factor = 1;
-rescale_factor = 0.8;
+rescale_factor = 0.75;
 text_size = 10.5;
 
 do_plot = 1;
@@ -34,7 +34,7 @@ for i = 1:length(trials)
             
         P_trace = logger.(trials{i}).(methods{j}).P_traces;
         rmse = logger.(trials{i}).(methods{j}).rmses;
-        wrmse = logger.(trials{i}).(methods{j}).rmses;
+        wrmse = logger.(trials{i}).(methods{j}).wrmses;
         mll = logger.(trials{i}).(methods{j}).mlls;
         wmll = logger.(trials{i}).(methods{j}).wmlls;
 
@@ -111,7 +111,7 @@ for j = 2:length(methods)
 end
 
 % Symmetric
-ts = tinv(0.95, length(trials)-1);
+ts = tinv(0.97, length(trials)-1);
 
 colours = [0.8500    0.3250    0.0980;
     0    0.4470    0.7410;
@@ -129,7 +129,7 @@ colours = [0.8500    0.3250    0.0980;
 if (do_plot)
         
     figure;
-    plot_ind = [2,4,5];
+    plot_ind = [2,5,6];
     
     %% Trace of P %%
     subplot(1,3,1)
@@ -137,8 +137,8 @@ if (do_plot)
     h = zeros(length(methods)-1,1);
     boundedline( ... %time_vector, mean_P_traces(1,:), SEM_P_traces(1,:)*ts, ...
         time_vector, mean_P_traces(2,:), SEM_P_traces(2,:)*ts, ... %   time_vector, mean_P_traces(3,:), SEM_P_traces(3,:)*ts, 
-        time_vector, mean_P_traces(4,:), SEM_P_traces(4,:)*ts, ...
         time_vector, mean_P_traces(5,:), SEM_P_traces(5,:)*ts, ...
+        time_vector, mean_P_traces(6,:), SEM_P_traces(6,:)*ts, ...
         'alpha', 'cmap', colours, 'transparency', transparency);
      
     for i = 1:3
@@ -147,7 +147,7 @@ if (do_plot)
     end
     
     h_xlabel = xlabel('Time (s)');
-    h_ylabel = ylabel('Trace(P)');
+    h_ylabel = ylabel('Tr(P)');
     set([h_xlabel, h_ylabel], ...
         'FontName'   , 'Helvetica');
     
@@ -164,6 +164,7 @@ if (do_plot)
         'YGrid'       , 'on'      , ...
         'LineWidth'   , 1         , ...
         'FontSize'    , text_size, ...
+        'FontName'    , 'Times', ...
         'LooseInset', max(get(gca,'TightInset'), 0.02));
 
     axis([0 time_vector(end) 0 400])
@@ -176,8 +177,8 @@ if (do_plot)
     hold on
     boundedline(... %time_vector, mean_rmses(1,:), SEM_rmses(1,:)*ts, ...
         time_vector, mean_rmses(2,:), SEM_rmses(2,:)*ts, ... %time_vector, mean_rmses(3,:), SEM_rmses(3,:)*ts, ... 
-        time_vector, mean_rmses(4,:), SEM_rmses(4,:)*ts, ...
         time_vector, mean_rmses(5,:), SEM_rmses(5,:)*ts, ...
+        time_vector, mean_rmses(6,:), SEM_rmses(6,:)*ts, ...
         'alpha', 'cmap', colours, 'transparency', transparency);
      
     for i = 1:3
@@ -201,6 +202,7 @@ if (do_plot)
         'YTick'       , 0:0.05:0.2, ...
         'LineWidth'   , 1         , ...
         'FontSize'    , text_size, ...
+        'FontName'    , 'Times', ...
         'LooseInset', max(get(gca,'TightInset'), 0.02));
     rescale_axes(rescale_factor);
     axis([0 time_vector(end) 0 0.2])
@@ -212,8 +214,8 @@ if (do_plot)
     hold on
     boundedline( ... %time_vector, mean_mlls(1,:), SEM_mlls(1,:)*ts, ...
         time_vector, mean_mlls(2,:), SEM_mlls(2,:)*ts, ... %time_vector, mean_mlls(3,:), SEM_mlls(3,:)*ts, ... 
-        time_vector, mean_mlls(4,:), SEM_mlls(4,:)*ts, ...
         time_vector, mean_mlls(5,:), SEM_mlls(5,:)*ts, ...
+        time_vector, mean_mlls(6,:), SEM_mlls(6,:)*ts, ...
         'alpha', 'cmap', colours, 'transparency', transparency);
      
     for i = 1:3
@@ -237,18 +239,21 @@ if (do_plot)
         'YTick'       , -1.5:0.5:0.5      , ...
         'LineWidth'   , 1         , ...
         'FontSize'    , text_size, ...
+        'FontName'    , 'Times', ...
         'LooseInset', max(get(gca,'TightInset'), 0.02));
     rescale_axes(rescale_factor);
     axis([0 time_vector(end) -1.5 0.5])
     pbaspect(gca, [1 2 1])
     hold off
+    set(gcf,'color','w');
     
     if (do_print)
         fig = gcf;
         fig.PaperUnits = 'inches';
         fig.PaperPosition = paper_pos;
         fig.PaperPositionMode = 'manual';
-        print(fig, '-dpdf', [file_path, 'methods.pdf']);
+       % print(fig, '-depsc2', [file_path, 'methods.eps'], '-loose', '-painters');
+        export_fig -depsc2 methods.eps -opengl
     end
     
         
@@ -257,7 +262,8 @@ if (do_plot)
             'FontName', 'HelveticaNarrow');
         set(h_legend, 'Location', 'SouthOutside');
         set(h_legend, 'orientation', 'horizontal')
-        set(h_legend, 'box', 'off')
+        set(h_legend, 'box', 'off');
+        set(h_legend, 'FontName', 'Century Schoolbook L');
     end
   
 end
