@@ -1,0 +1,23 @@
+function grid_map = take_measurement_at_point_ros(pos, pcl, grid_map, ...
+    map_parameters, planning_parameters)
+
+% Look at currently observed values based on FoV (camera footprint).
+submap_edge_size = ...
+    get_submap_edge_size(pos(3), map_parameters, planning_parameters);
+submap_coordinates = ...
+    get_submap_coordinates(pos, submap_edge_size, map_parameters);
+submap = ...
+    pcl_to_measurement(pcl, submap_edge_size, ...
+    submap_coordinates, map_parameters, planning_parameters);
+
+% Downsample submap (measurements) based on altitude.
+submap = get_downsampled_submap_ros(pos(3), submap);
+% Simulate sensor noise effects.
+%submap = add_sensor_noise(pos(3), submap, planning_parameters);
+
+% Update grid map, accounting for correlation.
+grid_map = ...
+    update_map_with_correlation(pos, submap, grid_map, ...
+    submap_coordinates, planning_parameters);
+
+end
