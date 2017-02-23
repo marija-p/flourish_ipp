@@ -1,7 +1,7 @@
 function grid_mean = pcl_to_measurement(pcl, submap_edge_size, ...
     submap_coordinates, map_parameters, planning_parameters)
 
-do_plot = 1;
+do_plot = 0;
 
 % Read data.
 xyz = pcl.Location;
