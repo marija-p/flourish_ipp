@@ -11,10 +11,10 @@ matlab_params.visualize = 0;
 planning_params.sensor_coeff_A = 0.05;
 planning_params.sensor_coeff_B = 0.2;
 % Camera fields of view (FoV)
-planning_params.sensor_fov_angle_x = 60;
-planning_params.sensor_fov_angle_y = 60;
-planning_params.min_height = 1;
-planning_params.max_height = 26;
+planning_params.sensor_fov_angle_x = 20;
+planning_params.sensor_fov_angle_y = 23;
+planning_params.min_height = 0.5;
+planning_params.max_height = 3;
 planning_params.max_vel = 5;        % [m/s]
 planning_params.max_acc = 3;        % [m/s^2]
 planning_params.time_budget = 200;  % [s]
