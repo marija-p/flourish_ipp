@@ -10,7 +10,7 @@ function factor = get_resolution_from_height_ros(altitude)
 %    factor = altitude/2;
 %end
 
-if altitude > 2.5
+if altitude > 1.5
     factor = 2;
 else
     factor = 1;
