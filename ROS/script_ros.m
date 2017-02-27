@@ -1,9 +1,12 @@
  dim_x_env = 2;
  dim_y_env = 2;
- cluster_radius = 3;
  
  % Define static transformations required for co-ordinate conversions.
-transforms.T_VSB_CAM = eye(4);  % Vicon-sensor-body -> camera
+transforms.T_VSB_CAM = ...              % Vicon sensor body -> camera.
+    [0, -1.0000, 0, -0.0140;
+    -1.0000,    0,    0,   -0.0000;
+     0,    0,   -1.0000,   -0.0559;
+     0,         0,         0,    1.0000];
 transforms.T_MAP_W = eye(4);    % Map -> world
 
  [matlab_parameters, planning_parameters, optimization_parameters, ...

@@ -1,14 +1,12 @@
-%global pcl
+% Receive PCL messages and visualize them in the camera frame.
 
-dim_x_env = 4;
-dim_y_env = 4;
+dim_x_env = 2;
+dim_y_env = 2;
 
 [matlab_parameters, planning_parameters, ...
     optimization_parameters, map_parameters] = load_params_ros(dim_x_env, dim_y_env);
 
 pcl_sub = rossubscriber('/pointcloud');
-
-%figure;
 
 while (true)
   
@@ -19,9 +17,9 @@ while (true)
     grid = pcl_to_grid(pcl, map_parameters);
     
  %  grid_sim = pcl_to_grid(pcl, map_parameters);
-  % xyz = readXYZ(pcl);
-  % rgb = readRGB(pcl);
-  % scatter(xyz(:,1), xyz(:,2), 5, rgb);
+ %  xyz = readXYZ(pcl);
+ %  rgb = readRGB(pcl);
+ %  scatter(xyz(:,1), xyz(:,2), 5, rgb);
  %  axis([-1 1 -1 1])
 
  %  scatter3(pcl)
