@@ -7,18 +7,18 @@ function [metrics, grid_map] = GP_iros_ros(planning_parameters, ...
 
 % Start ROS comms.
 %rosinit
-pose_pub = rospublisher('/flourish/command/pose', ...
-    rostype.geometry_msgs_PoseStamped);
-pose_msg = rosmessage(pose_pub);
+%pose_pub = rospublisher('/flourish/command/pose', ...
+%    rostype.geometry_msgs_PoseStamped);
+%pose_msg = rosmessage(pose_pub);
 
-odom_sub = rossubscriber('/flourish/vrpn_client/estimated_odometry');
+%odom_sub = rossubscriber('/flourish/vrpn_client/estimated_odometry');
 %pcl_sub = rossubscriber('/pointcloud');
 
 % Simulation
-% odom_sub = rossubscriber('/firefly/ground_truth/odometry');
-% pose_pub = rospublisher('/firefly/command/pose', ...
-%     rostype.geometry_msgs_PoseStamped);
-% pose_msg = rosmessage(pose_pub);
+ odom_sub = rossubscriber('/firefly/ground_truth/odometry');
+ pose_pub = rospublisher('/firefly/command/pose', ...
+     rostype.geometry_msgs_PoseStamped);
+ pose_msg = rosmessage(pose_pub);
 
 % Distance before a waypoint is considered reached.
 achievement_dist = 0.1;
@@ -37,8 +37,8 @@ inf_func = @infExact;
 mean_func = @meanConst;
 % Hyperparameters
 hyp.mean = 0.5;
-hyp.cov =  [1.3 0.3];
-hyp.lik =  0.35;
+hyp.cov = [0.7328 -0.75];
+hyp.lik = -0.35;
 
 % First measurement location
 point_init = [0, 0, 0.8];
@@ -47,7 +47,8 @@ lattice = create_lattice_ros(map_parameters, planning_parameters);
  
 %% Data %%
 % Generate (continuous) ground truth map.
-[mesh_x,mesh_y] = meshgrid(linspace(1,dim_x,dim_x), linspace(1,dim_y,dim_y));
+%[mesh_x,mesh_y] = meshgrid(linspace(1,dim_x,dim_x), linspace(1,dim_y,dim_y));
+[mesh_x,mesh_y] = meshgrid(linspace(31,50,dim_x), linspace(31,50,dim_y));
 X_ref = [reshape(mesh_x, numel(mesh_x), 1), reshape(mesh_y, numel(mesh_y), 1)];
 
 % Generate prediction map.

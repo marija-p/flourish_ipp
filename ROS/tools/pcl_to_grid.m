@@ -44,6 +44,7 @@ grid_mean(ind) = NaN;
 
 grid_mean = grid_sum./grid_numel;
 grid_mean = grid_mean.*6;
+grid_mean = grid_mean./0.77;
 %grid_mean = grid_mean./255;
 
 if (do_plot)
