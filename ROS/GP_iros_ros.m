@@ -7,18 +7,18 @@ function [metrics, grid_map] = GP_iros_ros(planning_parameters, ...
 
 % Start ROS comms.
 %rosinit
-%pose_pub = rospublisher('/flourish/command/pose', ...
-%    rostype.geometry_msgs_PoseStamped);
-%pose_msg = rosmessage(pose_pub);
+pose_pub = rospublisher('/flourish/command/pose', ...
+    rostype.geometry_msgs_PoseStamped);
+pose_msg = rosmessage(pose_pub);
 
-%odom_sub = rossubscriber('/flourish/vrpn_client/estimated_odometry');
+odom_sub = rossubscriber('/flourish/vrpn_client/estimated_odometry');
 %pcl_sub = rossubscriber('/pointcloud');
 
 % Simulation
-odom_sub = rossubscriber('/firefly/ground_truth/odometry');
-pose_pub = rospublisher('/firefly/command/pose', ...
-    rostype.geometry_msgs_PoseStamped);
-pose_msg = rosmessage(pose_pub);
+% odom_sub = rossubscriber('/firefly/ground_truth/odometry');
+% pose_pub = rospublisher('/firefly/command/pose', ...
+%     rostype.geometry_msgs_PoseStamped);
+% pose_msg = rosmessage(pose_pub);
 
 % Distance before a waypoint is considered reached.
 achievement_dist = 0.1;
@@ -135,6 +135,8 @@ metrics.points_meas = [];
 metrics.P_traces = [];
 metrics.times = [];
 metrics.maps = [];
+
+keyboard
 
 while (true)
     
