@@ -16,7 +16,7 @@ res = [0, 1];
 plot(altitude, res, 'Color', [0.7500, 0.0980, 0.0980], 'LineStyle', '--');
 hold off
 xlabel('Altitude, \ith\rm (m)')
-ylabel('Variance, \sigma_{g,i}^2')
+ylabel('Variance, \sigma_{s,i}^2')
 axis([0 25 0 0.075])
 set(gca, ...
     'Box'         , 'off'     , ...

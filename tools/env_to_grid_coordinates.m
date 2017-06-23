@@ -6,4 +6,3 @@ point_grid(:,1) = round((point_grid(:,1)/map_parameters.resolution + map_paramet
 point_grid(:,2) = round((point_grid(:,2)/map_parameters.resolution + map_parameters.dim_x/2));
 
 end
-

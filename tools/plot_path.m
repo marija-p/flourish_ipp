@@ -28,6 +28,9 @@ if isfield(planning_parameters, 'control_points')
         p = [p; p_poly];
         p_meas = [p_meas; p_meas_poly];
         
+        disp('Polynomial meas. points: ')
+        disp(p_meas_poly)
+        
     end
     
 % Only one polynomial.
@@ -61,7 +64,8 @@ scatter3(p_meas(:,1), p_meas(:,2), p_meas(:,3), 60, colors_meas, 'filled');
 xlabel('x (m)')
 ylabel('y (m)')
 zlabel('z (m)')
-axis([-20 20 -20 20 0 35])
+%axis([-20 20 -20 20 0 35])
+axis([-1.5 1.5 -1.5 1.5 0 2])
 grid minor
 colormap jet
 c = colorbar;

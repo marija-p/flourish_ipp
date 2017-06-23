@@ -1,4 +1,4 @@
-function [lattice] = create_lattice(map_parameters, planning_parameters)
+function [lattice_env] = create_lattice(map_parameters, planning_parameters)
 % Create multi-dimensional lattice in the UAV configuraton space.
 
 lattice = [];
@@ -16,6 +16,7 @@ for height = planning_parameters.min_height: ...
         get_submap_edge_size(height, map_parameters, planning_parameters);
     half_submap_edge_size_x = (submap_edge_size.x-1)/2;
     half_submap_edge_size_y = (submap_edge_size.y-1)/2;
+    disp(num2str(half_submap_edge_size_x));
     
     % Compute distance between points on a lattice plane,
     % assuming same discretisation in x- and y-dirs.
@@ -32,8 +33,9 @@ for height = planning_parameters.min_height: ...
     
 end
 
-lattice = grid_to_env_coordinates(lattice, map_parameters);
+%lattice = grid_to_env_coordinates(lattice, map_parameters);
+lattice_env = grid_to_env_coordinates(lattice, map_parameters);
 
-plot3(lattice(:,1), lattice(:,2), lattice(:,3), '.k');
+%plot3(lattice_env(:,1), lattice_env(:,2), lattice_env(:,3), '.k');
  
 end
