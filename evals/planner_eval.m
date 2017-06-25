@@ -20,7 +20,7 @@ use_coverage = 0; coverage_altitude = 8.66; coverage_vel = 0.78;
 
 %logger = struct;
 
-for t = 1:num_trials
+for t = 2:num_trials
    
     logger.(['trial', num2str(t)]).num = t;
     
