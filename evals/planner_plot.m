@@ -4,7 +4,7 @@ file_path = '~\PhD\Submissions\asldoc-2017-iros-popovic\images\';
 rescale_factor = 0.75;
 text_size = 10.5;
 
-do_plot = 1;
+do_plot = 0;
 do_print = 1;
 show_legend = 1;
 
@@ -13,7 +13,7 @@ paper_pos = [0, 0, 6, 4];
 trials = fieldnames(logger);
 methods = fieldnames(logger.trial1);
 
-time_vector = 0:0.1:200;
+time_vector = 0:0.1:600;
 
 P_traces = zeros(length(methods)-1,length(time_vector));
 rmses = zeros(length(methods)-1,length(time_vector));

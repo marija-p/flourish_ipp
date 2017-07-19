@@ -138,6 +138,7 @@ metrics.times = [];
 metrics.maps = [];
 
 keyboard
+tic;
 
 while (true)
     
@@ -174,6 +175,8 @@ while (true)
     % Sample trajectory to find locations to take measurements at.
     [times_meas, points_meas, ~, ~] = ...
         sample_trajectory(trajectory, 1/planning_parameters.measurement_frequency);
+    
+    disp(['Time elapsed: ', num2str(toc)]);
     
     % Take measurements along path, updating the grid map.
     for i = 1:size(points_meas,1)

@@ -96,12 +96,15 @@ while (true)
     %% Planning %%
     
     %% STEP 1. Grid search on the lattice.
+    tic;
+    
     path = search_lattice(point_prev, lattice, grid_map, map_params, ...
         planning_params);
     obj = compute_objective(path, grid_map, map_params, planning_params);
     disp(['Objective before optimization: ', num2str(obj)]);
     
-    tic;
+    disp(toc);
+    keyboard
     
     %% STEP 2. Path optimization.
     if (strcmp(opt_params.opt_method, 'cmaes'))
@@ -118,8 +121,6 @@ while (true)
     else
         path_optimized = path;
     end
-    
-    disp(toc)
     
     %% Plan Execution %%
     % Create polynomial trajectory through the control points.

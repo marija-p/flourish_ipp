@@ -1,5 +1,5 @@
 % Script to plot sensor model variance curve
-do_print = 1;
+do_print = 0;
 paper_pos = [0, 0, 3.2, 2.7];
 file_path = '~\PhD\Submissions\asldoc-2017-iros-popovic\images\';
 

@@ -10,11 +10,11 @@ xl = pos_grid(1) - floor(submap_edge_size.x/2);
 while (xl < 1)
     xl = xl + 1;
 end
-yd = pos_grid(2) - floor(submap_edge_size.x/2);
+yd = pos_grid(2) - floor(submap_edge_size.y/2);
 while (yd < 1)
     yd = yd + 1;
 end
-xr = pos_grid(1) + floor(submap_edge_size.y/2);
+xr = pos_grid(1) + floor(submap_edge_size.x/2);
 while (xr > map_parameters.dim_x)
     xr = xr - 1;
 end

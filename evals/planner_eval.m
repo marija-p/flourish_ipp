@@ -1,7 +1,7 @@
     %clear all; close all; clc;
 
 % Number of trials to run
-num_trials = 31;
+num_trials = 1;
 
 % Environment parameters
 max_cluster_radius = 3;
@@ -15,12 +15,12 @@ planning_params.time_budget = 600;  % [s]
 
 %opt_methods = {'none', 'cmaes', 'fmc', 'bo'};
 opt_methods = {};
-use_rig = 1; subtree_iters = 500;
-use_coverage = 0; coverage_altitude = 8.66; coverage_vel = 0.78;
+use_rig = 0; subtree_iters = 500;
+use_coverage = 1; coverage_altitude = 8.66; coverage_vel = 0.78 * (200/280);
 
 %logger = struct;
 
-for t = 2:num_trials
+for t = 1:num_trials
    
     logger.(['trial', num2str(t)]).num = t;
     

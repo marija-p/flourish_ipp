@@ -52,6 +52,11 @@ while (planning_parameters.control_points > size(path, 1))
             obj = -gain*exp(-planning_parameters.lambda*cost);
         end
         
+        %disp(['Point ', num2str(point_eval)]);
+        %disp(['Gain: ', num2str(gain)])
+        %disp(['Cost: ', num2str(cost)])
+        %disp(num2str(obj));
+        
         % Update best solution.
         if (obj < obj_min)
             obj_min = obj;
@@ -65,6 +70,7 @@ while (planning_parameters.control_points > size(path, 1))
         map_parameters, planning_parameters);
     disp(['Point ', num2str(size(path,1)+1), ' at: ', num2str(point_best)]);
     disp(['Trace of P: ', num2str(trace(grid_map.P))]);
+    disp(['Objective: ', num2str(obj_min)]);
     path = [path; point_best];
     
     P_trace_prev = trace(grid_map.P);

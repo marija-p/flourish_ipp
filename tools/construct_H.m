@@ -1,4 +1,4 @@
-function H = construct_H(x, z, submap_coordinates, altitude)
+function H = construct_H(x, z, submap_coordinates, altitude, predict)
 % Constructs the measurement model (H) for the KF, accounting for
 % varying resolution with altitude.
 % ---
@@ -8,7 +8,12 @@ function H = construct_H(x, z, submap_coordinates, altitude)
 [m,n] = size(x);
 [r,s] = size(z);
 H = zeros(r*s,m*n);
-res_factor = get_resolution_from_height(altitude);
+
+if (~predict)
+    res_factor = get_resolution_from_height(altitude);
+else
+    res_factor = 1;
+end
 
 % Altitude resolution diffusion effect:
 % Find the starting indices of the "diffused" cells.
