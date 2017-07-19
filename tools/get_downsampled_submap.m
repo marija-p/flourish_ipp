@@ -2,7 +2,6 @@ function [submap] = get_downsampled_submap(altitude, submap)
 % Obtains submap measurements at a coarser resolution depending on UAV altitude.
 
 res_factor = get_resolution_from_height(altitude);
-
 tmp_map = imresize(submap, 1/res_factor);
 submap = tmp_map;
 

@@ -11,7 +11,7 @@ function factor = get_resolution_from_height(altitude)
 %end
 
 if altitude > 10
-    factor = 4;
+    factor = 2;
 else
     factor = 1;
 end

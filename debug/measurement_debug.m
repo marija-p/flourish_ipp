@@ -26,5 +26,13 @@ caxis([0, 1])
 title('Ground truth map')
 set(gca,'Ydir','Normal');
 colorbar;
-
 set(gcf, 'Position',  [2818, 848, 1477, 376])
+
+Y_sigma = sqrt(diag(grid_map1.P)');
+P_post = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
+figure;
+imagesc(P_post)
+colorbar;
+title('Cov. map')
+set(gca,'Ydir','Normal');
+set(gcf, 'Position',  [790, 490, 498, 411])

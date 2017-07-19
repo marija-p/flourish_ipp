@@ -104,7 +104,7 @@ while (true)
     disp(['Objective before optimization: ', num2str(obj)]);
     
     disp(toc);
-    keyboard
+    %keyboard
     
     %% STEP 2. Path optimization.
     if (strcmp(opt_params.opt_method, 'cmaes'))

@@ -36,11 +36,9 @@ H = construct_H(grid_map.m, submap, submap_coordinates, pos(3), 0);
 %    ' ', num2str(submap_coordinates.xr), ' ', num2str(submap_coordinates.yu)])
 %disp(['Number of measurements: ', num2str(size(H,1))]);
 
-%tic
-
 %% Covariance Update
+%tic
 grid_map.P = KF_update_cholesky(grid_map.P, R, H);
-
 %disp(toc)
 
 %%TODO:- GP inference function here?

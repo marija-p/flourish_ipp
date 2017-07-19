@@ -1,4 +1,4 @@
-function H = construct_H(x, z, submap_coordinates, altitude, predict)
+function H = construct_H(x, z, submap_coordinates, altitude, fixed_res)
 % Constructs the measurement model (H) for the KF, accounting for
 % varying resolution with altitude.
 % ---
@@ -9,7 +9,7 @@ function H = construct_H(x, z, submap_coordinates, altitude, predict)
 [r,s] = size(z);
 H = zeros(r*s,m*n);
 
-if (~predict)
+if (~fixed_res)
     res_factor = get_resolution_from_height(altitude);
 else
     res_factor = 1;

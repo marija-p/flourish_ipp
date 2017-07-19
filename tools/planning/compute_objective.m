@@ -12,6 +12,9 @@ function obj = compute_objective(control_points, grid_map, map_parameters,...
 % M Popovic 2017
 %
 
+dim_x_env = map_parameters.dim_x*map_parameters.resolution;
+dim_y_env = map_parameters.dim_y*map_parameters.resolution;
+
 % Create polynomial path through the control points.
 trajectory = ...
     plan_path_waypoints(control_points, planning_parameters.max_vel, planning_parameters.max_acc);
@@ -31,6 +34,14 @@ end
 
 % Discard path if it is too long.
 if (size(points_meas,1) > 10)
+    obj = Inf;
+    return;
+end
+
+if (any(points_meas(:,1) > dim_x_env/2) || ...
+        any(points_meas(:,2) > dim_y_env/2) || ...
+        any(points_meas(:,1) < -dim_x_env/2) || ...
+        any(points_meas(:,2) < -dim_y_env/2))
     obj = Inf;
     return;
 end
