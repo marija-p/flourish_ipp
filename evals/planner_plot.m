@@ -4,16 +4,16 @@ file_path = '~\PhD\Submissions\asldoc-2017-iros-popovic\images\';
 rescale_factor = 0.75;
 text_size = 10.5;
 
-do_plot = 1;
+do_plot = 0;
 do_print = 1;
-show_legend = 0;
+show_legend = 1;
 
 paper_pos = [0, 0, 6, 4];
 
 trials = fieldnames(logger);
 methods = fieldnames(logger.trial1);
 
-time_vector = 0:0.1:200;
+time_vector = 0:0.1:600;
 
 P_traces = zeros(length(methods)-1,length(time_vector));
 rmses = zeros(length(methods)-1,length(time_vector));
@@ -134,7 +134,7 @@ if (do_plot)
     %% Trace of P %%
     subplot(1,3,1)
     hold on
-    h = zeros(length(methods)-1,1);
+    h = zeros(3,1);
     boundedline( ... %time_vector, mean_P_traces(1,:), SEM_P_traces(1,:)*ts, ...
         time_vector, mean_P_traces(2,:), SEM_P_traces(2,:)*ts, ... %   time_vector, mean_P_traces(3,:), SEM_P_traces(3,:)*ts, 
         time_vector, mean_P_traces(5,:), SEM_P_traces(5,:)*ts, ...
@@ -147,7 +147,7 @@ if (do_plot)
     end
     
     h_xlabel = xlabel('Time (s)');
-    h_ylabel = ylabel('Tr(P)');
+    h_ylabel = ylabel('Tr(\itP\rm)');
     set([h_xlabel, h_ylabel], ...
         'FontName'   , 'Helvetica');
     
@@ -166,7 +166,7 @@ if (do_plot)
         'FontSize'    , text_size, ...
         'FontName'    , 'Times', ...
         'LooseInset', max(get(gca,'TightInset'), 0.02));
-
+    set(gca, 'YTick', [0, 10.^1, 10.^2]);
     axis([0 time_vector(end) 0 400])
     rescale_axes(rescale_factor);
     pbaspect(gca, [1 2 1])
@@ -258,12 +258,11 @@ if (do_plot)
     
         
     if (show_legend)
-        h_legend = legend(h, 'CMA-ES', 'RIG-tree', 'Coverage', ...
-            'FontName', 'HelveticaNarrow');
+        h_legend = legend(h, 'CMA-ES', 'RIG-tree', 'Coverage');
         set(h_legend, 'Location', 'SouthOutside');
         set(h_legend, 'orientation', 'horizontal')
         set(h_legend, 'box', 'off');
-        set(h_legend, 'FontName', 'Century Schoolbook L');
+        set(h_legend, 'FontName', 'Times');
     end
   
 end

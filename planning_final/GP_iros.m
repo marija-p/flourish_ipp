@@ -1,14 +1,14 @@
 function [metrics, grid_map] = ...
-    GP_iros(matlab_parameters, planning_parameters, ...
-    optimization_parameters, map_parameters, ground_truth_map)
+    GP_iros(matlab_params, planning_params, ...
+    opt_params, map_params, ground_truth_map)
 % Main program for IROS2017 IPP algorithms.
 %
 % M Popovic 2017
 %
 
 % Get map dimensions [cells]
-dim_x = map_parameters.dim_x;
-dim_y = map_parameters.dim_y;
+dim_x = map_params.dim_x;
+dim_y = map_params.dim_y;
 % Set prediction map dimensions [cells]
 predict_dim_x = dim_x*1;
 predict_dim_y = dim_y*1;
@@ -26,7 +26,7 @@ hyp.lik =  0.35;
 % First measurement location
 point_init = [7.5, 7.5, 8.66];
 % Multi-resolution lattice
-lattice = create_lattice(map_parameters, planning_parameters);
+lattice = create_lattice(map_params, planning_params);
  
 %% Data %%
 % Generate (continuous) ground truth map.
@@ -54,25 +54,28 @@ Y = reshape(grid_map.m,[],1);
 ymu = reshape(ymu, predict_dim_y, predict_dim_x);
 
 alpha = post.alpha;
-L = post.L; 
+L = post.L;
 sW = post.sW;
 Kss = real(feval(cov_func{:}, hyp.cov, Z));
 Ks = feval(cov_func{:}, hyp.cov, X_ref, Z);
 Lchol = isnumeric(L) && all(all(tril(L,-1)==0)&diag(L)'>0&isreal(diag(L))');
 if Lchol    % L contains chol decomp => use Cholesky parameters (alpha,sW,L)
-  V = L'\(sW.*Ks);
-  grid_map.P = Kss - V'*V;                       % predictive variances
- else                % L is not triangular => use alternative parametrisation
-  if isnumeric(L), LKs = L*(Ks); else LKs = L(Ks); end    % matrix or callback
-  grid_map.P = Kss + Ks'*LKs;                    % predictive variances
+    V = L'\(sW.*Ks);
+    grid_map.P = Kss - V'*V;                       % predictive variances
+else                % L is not triangular => use alternative parametrisation
+    if isnumeric(L), LKs = L*(Ks); else LKs = L(Ks); end    % matrix or callback
+    grid_map.P = Kss + Ks'*LKs;                    % predictive variances
 end
 
 %% This is just to test in case of no-inference using only the kernel
-% sn2=exp(2*hyp.lik);
-% K = feval(cov_func{:},hyp.cov,X_ref);
-% KplusR = K+ sn2*eye(length(K));
-% grid_map.P = KplusR;
-%%
+sn2=exp(2*hyp.lik);
+K = feval(cov_func{:},hyp.cov,X_ref);
+KplusR = K+ sn2*eye(length(K));
+KplusR_inv = eye(size(K))/KplusR ;
+Kss = feval(cov_func{:},hyp.cov, Z) ;
+Kst = feval(cov_func{:},hyp.cov, Z, X_ref) ;
+grid_map.PP = Kss - Kst*KplusR_inv*Kst';
+
 
 %grid_map = take_measurement_at_point(point_init, grid_map, ...
 %    ground_truth_map, map_parameters, planning_parameters);
@@ -93,46 +96,47 @@ while (true)
     %% Planning %%
     
     %% STEP 1. Grid search on the lattice.
-    path = search_lattice(point_prev, lattice, grid_map, map_parameters, ...
-        planning_parameters);
-    obj = compute_objective(path, grid_map, map_parameters, planning_parameters);
-    disp(['Objective before optimization: ', num2str(obj)]);
-    
     tic;
     
+    path = search_lattice(point_prev, lattice, grid_map, map_params, ...
+        planning_params);
+    obj = compute_objective(path, grid_map, map_params, planning_params);
+    disp(['Objective before optimization: ', num2str(obj)]);
+    
+    disp(toc);
+    keyboard
+    
     %% STEP 2. Path optimization.
-    if (strcmp(optimization_parameters.opt_method, 'cmaes'))
-        path_optimized = optimize_with_cmaes(path, grid_map, map_parameters, ...
-            planning_parameters, optimization_parameters);
+    if (strcmp(opt_params.opt_method, 'cmaes'))
+        path_optimized = optimize_with_cmaes(path, grid_map, map_params, ...
+            planning_params, opt_params);
             %obj = compute_objective(path_optimized, grid_map, map_parameters, planning_parameters);
             %disp(['Objective after optimization: ', num2str(obj)]);
-    elseif (strcmp(optimization_parameters.opt_method, 'fmc'))
-        path_optimized = optimize_with_fmc(path, grid_map, map_parameters, ...
-            planning_parameters);
-    elseif (strcmp(optimization_parameters.opt_method, 'bo'))
-        path_optimized = optimize_with_bo(path, grid_map, map_parameters, ...
-            planning_parameters);
+    elseif (strcmp(opt_params.opt_method, 'fmc'))
+        path_optimized = optimize_with_fmc(path, grid_map, map_params, ...
+            planning_params);
+    elseif (strcmp(opt_params.opt_method, 'bo'))
+        path_optimized = optimize_with_bo(path, grid_map, map_params, ...
+            planning_params);
     else
         path_optimized = path;
     end
-    
-    disp(toc)
     
     %% Plan Execution %%
     % Create polynomial trajectory through the control points.
     trajectory = ...
         plan_path_waypoints(path_optimized, ...
-        planning_parameters.max_vel, planning_parameters.max_acc);
+        planning_params.max_vel, planning_params.max_acc);
 
     % Sample trajectory to find locations to take measurements at.
     [times_meas, points_meas, ~, ~] = ...
-        sample_trajectory(trajectory, 1/planning_parameters.measurement_frequency);
+        sample_trajectory(trajectory, 1/planning_params.measurement_frequency);
     
     % Take measurements along path, updating the grid map.
     for i = 1:size(points_meas,1)
         
         % Budget has been spent.
-        if ((time_elapsed + times_meas(i)) > planning_parameters.time_budget)
+        if ((time_elapsed + times_meas(i)) > planning_params.time_budget)
             points_meas = points_meas(1:i-1,:);
             times_meas = times_meas(1:i-1);
             budget_spent = 1;
@@ -140,7 +144,7 @@ while (true)
         end
         
         grid_map = take_measurement_at_point(points_meas(i,:), grid_map, ...
-            ground_truth_map, map_parameters, planning_parameters);
+            ground_truth_map, map_params, planning_params);
         metrics.P_traces = [metrics.P_traces; trace(grid_map.P)];
         metrics.rmses = [metrics.rmses; compute_rmse(grid_map.m, ground_truth_map)];
         metrics.wrmses = [metrics.wrmses; compute_wrmse(grid_map.m, ground_truth_map)];
@@ -154,12 +158,12 @@ while (true)
     disp(['Trace after execution: ', num2str(trace(grid_map.P))]);
     disp(['Time after execution: ', num2str(get_trajectory_total_time(trajectory))]);
     gain = P_trace_prev - trace(grid_map.P);
-    if (strcmp(planning_parameters.obj, 'rate'))
-        cost = max(get_trajectory_total_time(trajectory), 1/planning_parameters.measurement_frequency);
+    if (strcmp(planning_params.obj, 'rate'))
+        cost = max(get_trajectory_total_time(trajectory), 1/planning_params.measurement_frequency);
         disp(['Objective after execution: ', num2str(-gain/cost)]);
-    elseif (strcmp(planning_parameters.obj, 'exponential'))
+    elseif (strcmp(planning_params.obj, 'exponential'))
         cost = get_trajectory_total_time(trajectory);
-        disp(['Objective after execution: ', num2str(-gain*exp(-planning_parameters.lambda*cost))]);
+        disp(['Objective after execution: ', num2str(-gain*exp(-planning_params.lambda*cost))]);
     end
     
     metrics.points_meas = [metrics.points_meas; points_meas];
@@ -179,7 +183,7 @@ while (true)
 end
 
 
-if (matlab_parameters.visualize)
+if (matlab_params.visualize)
     
     subplot(2, 1, 1)
     imagesc(grid_map.m)

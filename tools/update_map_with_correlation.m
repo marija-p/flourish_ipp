@@ -21,7 +21,7 @@ function grid_map = ...
 var = ones(size(submap))*sensor_model(pos(3), planning_parameters);
 R = diag(reshape(var,[],1));
 % Create measurement model.
-H = construct_H(grid_map.m, submap, submap_coordinates, pos(3));
+H = construct_H(grid_map.m, submap, submap_coordinates, pos(3), 0);
 
 %% Correlated Fusion
 % Obtain maximum aposteriori estimate using Bayesian Fusion.

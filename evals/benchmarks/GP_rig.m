@@ -220,6 +220,8 @@ while (true)
     
     time_elapsed = time_elapsed + get_trajectory_total_time(trajectory);  
 
+    disp(['Elapsed time: ', num2str(time_elapsed)]);
+    
     if (budget_spent)
         break;
     end

@@ -13,6 +13,7 @@ function grid_map = ...
 % M Popovic 2017
 %
 
+
 %% Measurement Prediction
 % Compute current FoV (camera footprint).
 submap_edge_size = ...
@@ -21,16 +22,26 @@ submap_coordinates = ...
     get_submap_coordinates(pos, submap_edge_size, map_parameters);
 submap = grid_map.m(submap_coordinates.yd:submap_coordinates.yu, ...
     submap_coordinates.xl:submap_coordinates.xr);
+submap = get_downsampled_submap(pos(3), submap);
 
 %% Sensor Model
 % Compute measurement variances.
 var = ones(size(submap))*sensor_model(pos(3), planning_parameters);
 R = diag(reshape(var,[],1));
 % Create measurement model.
-H = construct_H(grid_map.m, submap, submap_coordinates, pos(3));
+H = construct_H(grid_map.m, submap, submap_coordinates, pos(3), 0);
+
+%disp(['Camera position: ', num2str(pos)]);
+%disp([num2str(submap_coordinates.xl), ' ', num2str(submap_coordinates.yd), ...
+%    ' ', num2str(submap_coordinates.xr), ' ', num2str(submap_coordinates.yu)])
+%disp(['Number of measurements: ', num2str(size(H,1))]);
+
+%tic
 
 %% Covariance Update
 grid_map.P = KF_update_cholesky(grid_map.P, R, H);
+
+%disp(toc)
 
 %%TODO:- GP inference function here?
 
