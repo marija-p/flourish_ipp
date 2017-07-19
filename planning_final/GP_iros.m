@@ -197,7 +197,6 @@ if (matlab_params.visualize)
     title(['Var. Trace = ', num2str(trace(grid_map.P), 5)])
     set(gca,'Ydir','Normal');
     c = colorbar;
-    P_climits = get(c, 'Limits');
     set(gcf, 'Position', [113, 279, 2402, 800]);
     
 end
