@@ -182,7 +182,6 @@ while (true)
     
 end
 
-
 if (matlab_params.visualize)
     
     subplot(2, 1, 1)
