@@ -50,8 +50,14 @@ end
 
 % Predict measurements along the path.
 for i = 1:size(points_meas,1)
-    grid_map = predict_map_update(points_meas(i,:), grid_map, ...
-        map_parameters, planning_parameters);
+    % Discard crappy solutions.
+    try
+        grid_map = predict_map_update(points_meas(i,:), grid_map, ...
+            map_parameters, planning_parameters);
+    catch
+        obj = Inf;
+        return;
+    end
 end
 
 if (planning_parameters.use_threshold)

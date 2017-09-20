@@ -11,7 +11,7 @@ dim_y_env = 30;
 
 [matlab_params, planning_params, ...
 	opt_params, map_params] = load_params(dim_x_env, dim_y_env);
-planning_params.time_budget = 600;  % [s]
+planning_params.time_budget = 300;  % [s]
 
 %opt_methods = {'none', 'cmaes', 'fmc', 'bo'};
 opt_methods = {'cmaes'};
@@ -20,7 +20,9 @@ use_coverage = 0; coverage_altitude = 8.66; coverage_vel = 0.78 * (200/280);
 
 %logger = struct;
 
-fovs = [20, 40, 60];
+%fovs = [20, 40, 60];
+%meas_freq = [0.05, 0.15, 0.25];
+velocities = [1, 3, 5, 7];
 
 for t = 1:num_trials
    
@@ -32,15 +34,17 @@ for t = 1:num_trials
     ground_truth_map = create_continuous_map(map_params.dim_x, ...
         map_params.dim_y, cluster_radius);
     
-    for i = 1:size(fovs)
-        opt_params.opt_method = opt_methods{i};
+    for i = 2:size(velocities,2)
+        opt_params.opt_method = opt_methods{1};
         rng(t*i, 'twister');
-        planning_params.sensor_fov_angle_x = fovs(i);
-        planning_params.sensor_fov_angle_y = fovs(i);
+        %planning_params.sensor_fov_angle_x = fovs(i);
+        %planning_params.sensor_fov_angle_y = fovs(i);
+        %planning_params.measurement_frequency = meas_freq(i);
+        planning_params.max_vel = velocities(i);
         [metrics, ~] = GP_iros(matlab_params, ...
             planning_params, opt_params, map_params, ground_truth_map);
         logger.(['trial', ... 
-            num2str(t)]).([opt_methods{i}]).([num2str(fovs(i)), 'degFoV']) = metrics;
+            num2str(t)]).([opt_methods{1}]).(['velocities',num2str(i)]) = metrics;
     end
     
     if (use_rig)
@@ -57,6 +61,6 @@ for t = 1:num_trials
         logger.(['trial', num2str(t)]).('coverage') = metrics;
     end
     
-    disp(['Completed Trial', num2str(t)]);
+    disp(['Completed Trial ', num2str(t)]);
     
 end
