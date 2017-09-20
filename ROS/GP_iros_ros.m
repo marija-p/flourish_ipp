@@ -7,18 +7,18 @@ function [metrics, grid_map] = GP_iros_ros(planning_parameters, ...
 
 % Start ROS comms.
 %rosinit
-%pose_pub = rospublisher('/flourish/command/pose', ...
-%    rostype.geometry_msgs_PoseStamped);
-%pose_msg = rosmessage(pose_pub);
+pose_pub = rospublisher('/flourish/command/pose', ...
+    rostype.geometry_msgs_PoseStamped);
+pose_msg = rosmessage(pose_pub);
 
-%odom_sub = rossubscriber('/flourish/vrpn_client/estimated_odometry');
-%pcl_sub = rossubscriber('/pointcloud');
+odom_sub = rossubscriber('/flourish/vrpn_client/estimated_odometry');
+pcl_sub = rossubscriber('/pointcloud');
 
 % Simulation
- odom_sub = rossubscriber('/firefly/ground_truth/odometry');
- pose_pub = rospublisher('/firefly/command/pose', ...
-     rostype.geometry_msgs_PoseStamped);
- pose_msg = rosmessage(pose_pub);
+% odom_sub = rossubscriber('/firefly/ground_truth/odometry');
+% pose_pub = rospublisher('/firefly/command/pose', ...
+%     rostype.geometry_msgs_PoseStamped);
+% pose_msg = rosmessage(pose_pub);
 
 % Distance before a waypoint is considered reached.
 achievement_dist = 0.1;
@@ -45,7 +45,7 @@ point_init = [0, 0, 0.8];
 % Multi-resolution lattice
 lattice = create_lattice_ros(map_parameters, planning_parameters);
  
-%% Data %%
+% Data %%
 % Generate (continuous) ground truth map.
 %[mesh_x,mesh_y] = meshgrid(linspace(1,dim_x,dim_x), linspace(1,dim_y,dim_y));
 [mesh_x,mesh_y] = meshgrid(linspace(31,50,dim_x), linspace(31,50,dim_y));
@@ -78,7 +78,8 @@ Kss = real(feval(cov_func{:}, hyp.cov, Z));
 Ks = feval(cov_func{:}, hyp.cov, X_ref, Z);
 Lchol = isnumeric(L) && all(all(tril(L,-1)==0)&diag(L)'>0&isreal(diag(L))');
 if Lchol    % L contains chol decomp => use Cholesky parameters (alpha,sW,L)
-  V = L'\(sW.*Ks);
+%  V = L'\(sW.*Ks);
+  V = L'\(repmat(sW,1,400) .*Ks);
   grid_map.P = Kss - V'*V;                       % predictive variances
  else                % L is not triangular => use alternative parametrisation
   if isnumeric(L), LKs = L*(Ks); else LKs = L(Ks); end    % matrix or callback
@@ -106,13 +107,9 @@ while (~reached_point)
     x_odom_W_VSB = [odom.Pose.Pose.Position.X, ...
         odom.Pose.Pose.Position.Y, odom.Pose.Pose.Position.Z];
     
-    disp(['UAV odom = ', num2str(x_odom_W_VSB)])
-    
     T_W_VSB = trvec2tform(x_odom_W_VSB);
     T_MAP_CAM = transforms.T_MAP_W * T_W_VSB * transforms.T_VSB_CAM;
     x_odom_MAP_CAM = tform2trvec(T_MAP_CAM);
-    
-    disp(['Camera pos = ', num2str(x_odom_MAP_CAM)]);
     
     if (pdist2(point_init, x_odom_MAP_CAM) < achievement_dist)
         reached_point = true;
@@ -136,9 +133,8 @@ metrics.points_meas = [];
 metrics.P_traces = [];
 metrics.times = [];
 metrics.maps = [];
-
-keyboard
-tic;
+metrics.pcls = [];
+metrics.odoms = [];
 
 while (true)
     
@@ -165,7 +161,7 @@ while (true)
     else
         path_optimized = path;
     end
-    
+
     %% Plan Execution %%
     % Create polynomial trajectory through the control points.
     trajectory = ...
@@ -176,7 +172,7 @@ while (true)
     [times_meas, points_meas, ~, ~] = ...
         sample_trajectory(trajectory, 1/planning_parameters.measurement_frequency);
     
-    disp(['Time elapsed: ', num2str(toc)]);
+    disp(points_meas)
     
     % Take measurements along path, updating the grid map.
     for i = 1:size(points_meas,1)
@@ -233,10 +229,12 @@ while (true)
         quat_odom_W_VSB = [odom.Pose.Pose.Orientation.W, ...
             odom.Pose.Pose.Orientation.X, odom.Pose.Pose.Orientation.Y, ...
             odom.Pose.Pose.Orientation.Z];
+        disp(['Taking meas. at: ', num2str(x_odom_W_VSB)]);
+ 
         T_W_VSB = quat2tform(quat_odom_W_VSB);
         T_W_VSB(1:3, 4) = x_odom_W_VSB';
         T_MAP_CAM = transforms.T_MAP_W * T_W_VSB * transforms.T_VSB_CAM;
-        x_odom_MAP_CAM = trvec2tform(T_MAP_CAM);
+        x_odom_MAP_CAM = tform2trvec(T_MAP_CAM);
         
         % Get transform: map -> points.
         pcl = pointCloud(readXYZ(pcl),'Color',uint8(255*readRGB(pcl)));
@@ -247,6 +245,7 @@ while (true)
             map_parameters, planning_parameters);
         metrics.P_traces = [metrics.P_traces; trace(grid_map.P)];
         metrics.maps = cat(3, metrics.maps, grid_map.m);
+        metrics.odoms = [metrics.odoms; odom];
         
     end
 

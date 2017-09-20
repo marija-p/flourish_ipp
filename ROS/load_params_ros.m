@@ -8,13 +8,13 @@ matlab_params.visualize = 0;
 
 % Coefficients for the exponential height-dependant sensor variance model
 % var = A * (1 - e^(-B * height))
-planning_params.sensor_coeff_A = 0.05;
-planning_params.sensor_coeff_B = 0.2;
+planning_params.sensor_coeff_A = 0.4;
+planning_params.sensor_coeff_B = 0.05;
 % Camera fields of view (FoV)
 planning_params.sensor_fov_angle_x = 19;
 planning_params.sensor_fov_angle_y = 23;
 planning_params.min_height = 0.5;
-planning_params.max_height = 2.7;
+planning_params.max_height = 1.8;
 planning_params.max_vel = 1.5;        % [m/s]
 planning_params.max_acc = 2;          % [m/s^2]
 planning_params.time_budget = 1500;   % [s]
@@ -29,9 +29,9 @@ planning_params.measurement_frequency = 0.2;
 planning_params.control_points = 4;
 
 % Number of lattice points at lowest altitude level
-planning_params.lattice_min_height_points = 9;
+planning_params.lattice_min_height_points = 16;
 % Distance between successive altitude levels on the lattice
-planning_params.lattice_height_increment = 1;
+planning_params.lattice_height_increment = 0.5;
 
 % Threshold [% vegetation cover] - only regions above this value are
 % considered "interesting" and used when computing information gain.
@@ -47,7 +47,7 @@ opt_params.opt_method = 'cmaes'; % 'fmc'/cmaes'/'none'/'bo'
 % Covariances in each search dimension
 opt_params.cov_x = 0.2;
 opt_params.cov_y = 0.2;
-opt_params.cov_z = 0.2;
+opt_params.cov_z = 0.1;
 
 % Map resolution [m/cell]
 map_params.resolution = 0.1;
