@@ -14,6 +14,7 @@ predict_dim_x = dim_x*1;
 predict_dim_y = dim_y*1;
 
 % Gaussian Process
+
 cov_func = {'covMaterniso', 3};
 lik_func = @likGauss;
 inf_func = @infExact;
