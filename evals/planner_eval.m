@@ -1,7 +1,7 @@
-    %clear all; close all; clc;
+%clear all; close all; clc;
 
 % Number of trials to run
-num_trials = 1;
+num_trials = 30;
 
 % Environment parameters
 max_cluster_radius = 3;
@@ -11,14 +11,15 @@ dim_y_env = 30;
 
 [matlab_params, planning_params, ...
 	opt_params, map_params] = load_params(dim_x_env, dim_y_env);
-planning_params.time_budget = 600;  % [s]
+planning_params.time_budget = 200;  % [s]
 
 %opt_methods = {'none', 'cmaes', 'fmc', 'bo'};
 opt_methods = {};
 use_rig = 0; subtree_iters = 500;
-use_coverage = 1; coverage_altitude = 8.66; coverage_vel = 0.78 * (200/280);
+use_coverage = 0; coverage_altitude = 8.66; coverage_vel = 0.78 * (200/280);
+use_random = 1;
 
-%logger = struct;
+logger = struct;
 
 for t = 1:num_trials
    
@@ -52,6 +53,13 @@ for t = 1:num_trials
         logger.(['trial', num2str(t)]).('coverage') = metrics;
     end
     
-    disp(['Completed Trial', num2str(t)]);
+    if (use_random)
+        rng(t, 'twister');
+        [metrics, ~] = GP_random(matlab_params, planning_params, ...
+            map_params, ground_truth_map);
+        logger.(['trial', num2str(t)]).('random') = metrics;
+    end
+    
+    disp(['Completed Trial ', num2str(t)]);
     
 end

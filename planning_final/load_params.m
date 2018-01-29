@@ -50,7 +50,7 @@ opt_params.cov_y = 3;
 opt_params.cov_z = 4;
 
 % Map resolution [m/cell]
-map_params.resolution = 0.15;
+map_params.resolution = 0.75;
 % Map dimensions [cells]
 map_params.dim_x = dim_x_env/map_params.resolution;
 map_params.dim_y = dim_y_env/map_params.resolution;
