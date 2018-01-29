@@ -33,7 +33,7 @@ use_rig = 0; subtree_iters = 500;
 use_coverage = 0; coverage_altitude = 8.66; coverage_vel = 0.78 * (200/280);
 use_random = 1;
 
-logger = struct;
+%logger = struct;
 
 for i = 1:num_trials
 
