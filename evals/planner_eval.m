@@ -1,7 +1,7 @@
 %clear all; close all; clc;
 
 % If data already exists, want to append to it for the trials it contains.
-append_to_logger = 1;
+append_to_logger = 0;
 
 % Number of trials to run
 if (~append_to_logger)
@@ -25,13 +25,17 @@ dim_y_env = 30;
 
 [matlab_params, planning_params, ...
 	opt_params, map_params] = load_params(dim_x_env, dim_y_env);
-planning_params.time_budget = 200;  % [s]
+planning_params.time_budget = 400;  % [s]
 
 %opt_methods = {'none', 'cmaes', 'fmc', 'bo'};
+%opt_methods = {'none', 'cmaes'};
 opt_methods = {};
+
 use_rig = 0; subtree_iters = 500;
-use_coverage = 0; coverage_altitude = 8.66; coverage_vel = 0.78 * (200/280);
-use_random = 1;
+use_coverage = 1; coverage_altitude = 8.66; coverage_vel = 0.95;  %0.78 * (200/280)
+use_random = 0;
+use_greedy = 0; planning_params_greedy = planning_params;
+planning_params_greedy.control_points = 2;
 
 %logger = struct;
 
@@ -51,12 +55,12 @@ for i = 1:num_trials
     ground_truth_map = create_continuous_map(map_params.dim_x, ...
         map_params.dim_y, cluster_radius);
     
-    for i = 1:size(opt_methods,2)
-        opt_params.opt_method = opt_methods{i};
-        rng(t*i, 'twister');
+    for j = 1:size(opt_methods,2)
+        opt_params.opt_method = opt_methods{j};
+        rng(t*j*planning_params.time_budget, 'twister');
         [metrics, ~] = GP_iros(matlab_params, ...
             planning_params, opt_params, map_params, ground_truth_map);
-        logger.(['trial', num2str(t)]).([opt_methods{i}]) = metrics;
+        logger.(['trial', num2str(t)]).([opt_methods{j}]) = metrics;
     end
     
     if (use_rig)
@@ -78,6 +82,14 @@ for i = 1:num_trials
         [metrics, ~] = GP_random(matlab_params, planning_params, ...
             map_params, ground_truth_map);
         logger.(['trial', num2str(t)]).('random') = metrics;
+    end
+    
+    if (use_greedy)
+        rng(t, 'twister')
+        opt_params.opt_method = 'none';
+        [metrics, ~] = GP_iros(matlab_params, ...
+            planning_params_greedy, opt_params, map_params, ground_truth_map);
+        logger.(['trial', num2str(t)]).('greedy') = metrics;
     end
     
     disp(['Completed Trial ', num2str(t)]);

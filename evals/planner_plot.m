@@ -1,17 +1,18 @@
 file_path = '~\PhD\Submissions\asldoc-2017-tbd-popovic\images\';
 
 %rescale_factor = 1;
-rescale_factor = 0.75;
-text_size = 10.5;
+rescale_factor = 1;
+text_size = 5.5;
+plot_aspect_ratio = [1 1 1];
 
 do_plot = 1;
 do_print = 0;
-show_legend = 0;
+show_legend = 1;
 
 paper_pos = [0, 0, 6, 4];
 
 trials = fieldnames(logger);
-methods = {'cmaes', 'rig', 'random', 'coverage'};
+methods = {'cmaes', 'rig', 'coverage', 'random'};
 %methods = fieldnames(logger.trial1);
 
 time_vector = 0:0.1:200;
@@ -170,7 +171,7 @@ if (do_plot)
     set(gca, 'YTick', [0, 10.^1, 10.^2]);
     axis([0 time_vector(end) 0 400])
     rescale_axes(rescale_factor);
-    pbaspect(gca, [1 2 1])
+    pbaspect(gca, plot_aspect_ratio)
     hold off
     
     %% RMSE %%
@@ -208,7 +209,7 @@ if (do_plot)
         'LooseInset', max(get(gca,'TightInset'), 0.02));
     rescale_axes(rescale_factor);
     axis([0 time_vector(end) 0 0.2])
-    pbaspect(gca, [1 2 1])
+    pbaspect(gca, plot_aspect_ratio)
     hold off
   
     %% MLL %%
@@ -246,7 +247,7 @@ if (do_plot)
         'LooseInset', max(get(gca,'TightInset'), 0.02));
     rescale_axes(rescale_factor);
     axis([0 time_vector(end) -1.5 0.5])
-    pbaspect(gca, [1 2 1])
+    pbaspect(gca, plot_aspect_ratio)
     hold off
     set(gcf,'color','w');
     
@@ -261,8 +262,8 @@ if (do_plot)
     
         
     if (show_legend)
-        %h_legend = legend(h, 'CMA-ES', 'RIG-tree', 'Coverage');
-        h_legend = legend(h, methods);
+        h_legend = legend(h, 'CMA-ES', 'RIG-tree', 'Coverage', 'Random');
+        %h_legend = legend(h, methods);
         set(h_legend, 'Location', 'SouthOutside');
         set(h_legend, 'orientation', 'horizontal')
         set(h_legend, 'box', 'off');
