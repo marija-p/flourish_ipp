@@ -98,7 +98,7 @@ while (path(end,1) < dim_x_env/2)
     end
     
     % Move in x.
-    point = path(end,:) + [(submap_edge_size.x), 0, 0];
+    point = path(end,:) + [submap_edge_size.x, 0, 0];
     path = [path; point];
     i = i + 1;
     
@@ -106,8 +106,6 @@ end
 
 % Remove the last waypoint (out of bounds).
 path = path(1:end-1, :);
-
-
 
 %% Execution %%
 metrics = initialize_metrics();

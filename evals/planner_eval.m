@@ -5,7 +5,7 @@ append_to_logger = 0;
 
 % Number of trials to run
 if (~append_to_logger)
-    num_trials = 30;
+    num_trials = 10;
 else
     trials = fieldnames(logger);
     trials = regexp(trials,'\d*','Match');
@@ -25,21 +25,21 @@ dim_y_env = 30;
 
 [matlab_params, planning_params, ...
 	opt_params, map_params] = load_params(dim_x_env, dim_y_env);
-planning_params.time_budget = 400;  % [s]
+planning_params.time_budget = 100;  % [s]
 
 %opt_methods = {'none', 'cmaes', 'fmc', 'bo'};
-%opt_methods = {'none', 'cmaes'};
-opt_methods = {};
+opt_methods = {'none', 'cmaes'};
+%opt_methods = {};
 
 use_rig = 0; subtree_iters = 500;
-use_coverage = 1; coverage_altitude = 8.66; coverage_vel = 0.95;  %0.78 * (200/280)
+use_coverage = 0; coverage_altitude = 8.66; coverage_vel = 0.48;  %0.78 * (200/280)
 use_random = 0;
 use_greedy = 0; planning_params_greedy = planning_params;
 planning_params_greedy.control_points = 2;
 
 %logger = struct;
 
-for i = 1:num_trials
+for i = 4:num_trials
 
     if (~append_to_logger)
         t = i;
