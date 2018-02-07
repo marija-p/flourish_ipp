@@ -17,7 +17,7 @@ dim_y_env = 30;
 [matlab_params, planning_params, ...
 	opt_params, map_params] = load_params(dim_x_env, dim_y_env);
 
-planning_params.max_vel = 0.3;
+planning_params.max_vel = 0.8;
 
 logger = struct;
 
@@ -37,7 +37,10 @@ for t = 1:num_trials
     
 end
 
-%close all;
+disp('Final Tr(P):');
+disp(metrics.P_traces(end));
+
+close all;
 
 % For plotting.
 planning_params = rmfield(planning_params, 'control_points');
