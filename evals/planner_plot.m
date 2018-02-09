@@ -1,8 +1,8 @@
 file_path = '~\PhD\Submissions\asldoc-2017-tbd-popovic\images\';
 
 %rescale_factor = 1;
-rescale_factor = 1;
-text_size = 10.5;
+rescale_factor = 0.95;
+text_size = 6.5;
 plot_aspect_ratio = [1 1 1];
 line_width = 0.7;
 
@@ -13,10 +13,10 @@ show_legend = 0;
 paper_pos = [0, 0, 6, 4];
 
 trials = fieldnames(logger);
-methods = {'cmaes', 'none', 'coverage'};
+methods = {'cmaes'};
 %methods = fieldnames(logger.trial1);
 
-time_vector = 0:0.1:100;
+time_vector = 0:0.1:600;
 
 P_traces = zeros(length(methods)-1,length(time_vector));
 rmses = zeros(length(methods)-1,length(time_vector));

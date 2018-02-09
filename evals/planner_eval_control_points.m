@@ -5,7 +5,7 @@ append_to_logger = 0;
 
 % Number of trials to run
 if (~append_to_logger)
-    num_trials = 10;
+    num_trials = 1;
 else
     trials = fieldnames(logger);
     trials = regexp(trials,'\d*','Match');
@@ -25,14 +25,14 @@ dim_y_env = 30;
 
 [matlab_params, planning_params, ...
 	opt_params, map_params] = load_params(dim_x_env, dim_y_env);
-planning_params.time_budget = 100;  % [s]
+planning_params.time_budget = 200;  % [s]
 
 %opt_methods = {'none', 'cmaes', 'fmc', 'bo'};
 opt_methods = {'none', 'cmaes'};
 %opt_methods = {};
 
 use_rig = 0; subtree_iters = 500;
-use_coverage = 0; coverage_altitude = 8.66; coverage_vel = 0.48;  %0.78 * (200/280)
+use_coverage = 0; coverage_altitude = 8.66; coverage_vel = 0.8;  %0.78 * (200/280)
 use_random = 0;
 use_greedy = 0; planning_params_greedy = planning_params;
 planning_params_greedy.control_points = 2;
@@ -53,8 +53,8 @@ for i = 1:num_trials
     % Generate (continuous) ground truth map.
     rng(t, 'twister');
     cluster_radius = randi([min_cluster_radius, max_cluster_radius]);
-    ground_truth_map = create_continuous_map(map_params.dim_x, ...
-        map_params.dim_y, cluster_radius);
+    %ground_truth_map = create_continuous_map(map_params.dim_x, ...
+    %    map_params.dim_y, cluster_radius, 0, 1);
     
     for j = 1:size(opt_methods,2)
         opt_params.opt_method = opt_methods{j};

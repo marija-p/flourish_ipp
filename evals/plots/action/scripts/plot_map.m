@@ -12,7 +12,7 @@ colormap gray
 
 freezeColors
 Y_sigma = sqrt(diag(grid_map.P)');
-P_post = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
+P_post = reshape(2*Y_sigma,40,40);
 P_post = (P_post - min(min(P_post))) / (max(max(P_post)) - min(min(P_post)));
 imagesc(grid_map.m, 'AlphaData', (1-P_post));
 %imagesc(ground_truth_map)
