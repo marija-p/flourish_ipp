@@ -25,8 +25,10 @@ trajectory = ...
     1/planning_parameters.measurement_frequency);
 
 if (planning_parameters.use_threshold)
-    above_thres_ind = find(grid_map.m >= planning_parameters.lower_threshold);
     P = reshape(diag(grid_map.P)', size(grid_map.m));
+    above_thres_ind = find(grid_map.m + ...
+        planning_parameters.beta*sqrt(P) >= ...
+        planning_parameters.lower_threshold);
     P_i = sum(P(above_thres_ind));
 else
     P_i = trace(grid_map.P);

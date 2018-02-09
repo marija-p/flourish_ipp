@@ -49,7 +49,7 @@ hold on
 % Visualize trajectory.
 cline(p(:,1), p(:,2), p(:,3), t);
 % Visualize control points.
-scatter3(path(:,1), path(:,2), path(:,3), 140, 'xk');
+%scatter3(path(:,1), path(:,2), path(:,3), 140, 'xk');
 % Visualize measurements.
 colors_meas = linspace(0, t(end),size(p_meas,1));
 
