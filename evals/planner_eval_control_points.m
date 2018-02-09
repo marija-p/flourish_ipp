@@ -37,9 +37,10 @@ use_random = 0;
 use_greedy = 0; planning_params_greedy = planning_params;
 planning_params_greedy.control_points = 2;
 
+control_points = [2, 3, 4, 5, 6, 7];
 %logger = struct;
 
-for i = 4:num_trials
+for i = 1:num_trials
 
     if (~append_to_logger)
         t = i;
@@ -57,10 +58,14 @@ for i = 4:num_trials
     
     for j = 1:size(opt_methods,2)
         opt_params.opt_method = opt_methods{j};
-        rng(t*j*planning_params.time_budget, 'twister');
-        [metrics, ~] = GP_iros(matlab_params, ...
-            planning_params, opt_params, map_params, ground_truth_map);
-        logger.(['trial', num2str(t)]).([opt_methods{j}]) = metrics;
+        for c = 1:size(control_points,2)
+            planning_params.control_points = control_points(c);
+            rng(t*j*c, 'twister');
+            [metrics, ~] = GP_iros(matlab_params, ...
+                planning_params, opt_params, map_params, ground_truth_map);
+            logger.(['trial', ...
+                num2str(t)]).([opt_methods{j}]).(['control_points',num2str(c)]) = metrics;
+        end
     end
     
     if (use_rig)
