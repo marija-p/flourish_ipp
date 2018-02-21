@@ -28,22 +28,22 @@ dim_y_env = 30;
 planning_params.time_budget = 200;  % [s]
 
 %opt_methods = {'none', 'cmaes', 'fmc', 'bo'};
-opt_methods = {'cmaes'};
+opt_methods = {'bo'};
 %opt_methods = {};
 
-opt_params.cov_x = 10;
-opt_params.cov_y = 10;
-opt_params.cov_z = 12;
+% opt_params.cov_x = 10;
+% opt_params.cov_y = 10;
+% opt_params.cov_z = 12;
 
 use_rig = 0; subtree_iters = 500;
-use_coverage = 1; coverage_altitude = 8.66; coverage_vel = 0.8;  %0.78 * (200/280)
+use_coverage = 0; coverage_altitude = 8.66; coverage_vel = 0.8;  %0.78 * (200/280)
 use_random = 0; 
 use_greedy = 0; planning_params_greedy = planning_params;
 planning_params_greedy.control_points = 2;
 
 %logger = struct;
 
-for i = 9:num_trials
+for i = 1:num_trials
 
     if (~append_to_logger)
         t = i;
@@ -57,14 +57,14 @@ for i = 9:num_trials
     rng(t, 'twister');
     cluster_radius = randi([min_cluster_radius, max_cluster_radius]);
     ground_truth_map = create_continuous_map(map_params.dim_x, ...
-        map_params.dim_y, clus ter_radius, 0, 1);
+        map_params.dim_y, cluster_radius, 0, 1);
     
     for j = 1:size(opt_methods,2)
         opt_params.opt_method = opt_methods{j};
         rng(t*j*planning_params.time_budget, 'twister');
         [metrics, ~] = GP_iros(matlab_params, ...
             planning_params, opt_params, map_params, ground_truth_map);
-        logger.(['trial', num2str(t)]).([opt_methods{j}, '_10_10_12']) = ...
+        logger.(['trial', num2str(t)]).([opt_methods{j}, '_LCB']) = ...
             metrics;
     end
     

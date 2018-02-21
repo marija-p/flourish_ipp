@@ -38,7 +38,7 @@ if (~manual_lattice)
     %lattice = grid_to_env_coordinates(lattice, map_parameters);
     lattice_env = grid_to_env_coordinates(lattice, map_parameters);
     
-    plot3(lattice_env(:,1), lattice_env(:,2), lattice_env(:,3), '.k');
+    %plot3(lattice_env(:,1), lattice_env(:,2), lattice_env(:,3), '.k');
     
 else
     
