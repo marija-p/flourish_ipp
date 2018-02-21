@@ -17,7 +17,7 @@ dim_y_env = 30;
 [matlab_params, planning_params, ...
 	opt_params, map_params] = load_params(dim_x_env, dim_y_env);
 
-planning_params.max_vel = 0.8;
+planning_params.max_vel = 1.0;
 
 logger = struct;
 
@@ -27,7 +27,7 @@ for t = 1:num_trials
     
     % Generate (continuous) ground truth map.
     ground_truth_map = create_continuous_map(map_params.dim_x, ...
-        map_params.dim_y, cluster_radius);
+        map_params.dim_y, cluster_radius, 0, 1);
     
     [metrics, grid_map] = GP_coverage(matlab_params, ...
         planning_params, map_params, coverage_altitude, ...
@@ -43,7 +43,7 @@ disp(metrics.P_traces(end));
 close all;
 
 % For plotting.
-planning_params = rmfield(planning_params, 'control_points');
+%planning_params = rmfield(planning_params, 'control_points');
 
-figure;
-plot_path(metrics.path_travelled, planning_params);
+%figure;
+%plot_path(metrics.path_travelled, planning_params);

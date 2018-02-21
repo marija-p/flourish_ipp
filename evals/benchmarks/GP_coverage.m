@@ -7,8 +7,6 @@ function [metrics, grid_map] = GP_coverage(matlab_parameters, planning_parameter
 
 % Initialize variables.
 
-matlab_parameters.visualize = 1;
-
 % Get map dimensions [cells].
 dim_x = map_parameters.dim_x;
 dim_y = map_parameters.dim_y;

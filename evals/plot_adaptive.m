@@ -1,9 +1,6 @@
-file_path = '~\PhD\Submissions\asldoc-2017-tbd-popovic\images\';
-
-%rescale_factor = 1;
-rescale_factor = 0.89;
-text_size = 10;
-plot_aspect_ratio = [1 2 1];
+rescale_factor = 0.95;
+text_size = 10.5;
+plot_aspect_ratio = [1 1 1];
 line_width = 0.7;
 
 do_plot = 1;
@@ -13,8 +10,7 @@ show_legend = 0;
 paper_pos = [0, 0, 6, 4];
 
 trials = fieldnames(logger);
-methods = {'cmaes', 'rig', 'coverage', 'random'};
-%methods = fieldnames(logger.trial1);
+methods = {'cmaes_adaptive', 'none_nonadaptive'};
 
 time_vector = 0:0.1:200;
 
@@ -23,6 +19,7 @@ rmses = zeros(length(methods)-1,length(time_vector));
 wrmses = zeros(length(methods)-1,length(time_vector));
 mlls = zeros(length(methods)-1,length(time_vector));
 wmlls = zeros(length(methods)-1,length(time_vector));
+uncertainty_diffs = zeros(length(methods)-1,length(time_vector));
 
 for i = 1:length(trials)
     
@@ -32,9 +29,6 @@ for i = 1:length(trials)
            time = logger.(trials{i}).(methods{j}).times;
         catch
            disp(['Cant find ', trials{i}, ' ' methods{j}])
-           logger = rmfield(logger, trials{i});
-           trials(i) = [];
-           i = i - 1;
            break;
         end
             
@@ -43,7 +37,8 @@ for i = 1:length(trials)
         wrmse = logger.(trials{i}).(methods{j}).wrmses;
         mll = logger.(trials{i}).(methods{j}).mlls;
         wmll = logger.(trials{i}).(methods{j}).wmlls;
-
+        uncertainty_diff = logger.(trials{i}).(methods{j}).uncertainty_diff;
+        
         ts = timeseries(P_trace, time);
         ts_resampled = resample(ts, time_vector, 'zoh');
         P_traces(j,:,i) = ts_resampled.data';
@@ -63,7 +58,11 @@ for i = 1:length(trials)
         ts = timeseries(wmll, time);
         ts_resampled = resample(ts, time_vector, 'zoh');
         wmlls(j,:,i) = ts_resampled.data';
-
+        
+        ts = timeseries(uncertainty_diff, time);
+        ts_resampled = resample(ts, time_vector, 'zoh');
+        uncertainty_diffs(j,:,i) = ts_resampled.data;
+        
     end
     
 end
@@ -74,11 +73,12 @@ mean_rmses = sum(rmses,3)./length(trials);
 mean_wrmses = sum(wrmses,3)./length(trials);
 mean_mlls = sum(mlls,3)./length(trials);
 mean_wmlls = sum(wmlls,3)./length(trials);
+mean_uncertainty_diffs = sum(uncertainty_diffs,3)./length(trials);
 median_P_traces = median(P_traces,3);
 median_rmses = median(rmses,3);
 median_wrmses = median(wrmses,3);
 median_mlls = median(mlls,3);
-median_wmlls = median(wmlls,3);
+median_uncertainty_diffs = median(uncertainty_diffs,3);
 
 % Print average values.
 disp(methods(2:end))
@@ -92,6 +92,9 @@ disp('Mean MLLs: ')
 disp(sum(mean_mlls, 2, 'omitnan')./size(mean_mlls,2));
 disp('Mean WMLLs: ')
 disp(sum(mean_wmlls, 2, 'omitnan')./size(mean_wmlls,2));
+disp('Mean Uncertainty Diffs: ')
+disp(sum(mean_uncertainty_diffs, 2, 'omitnan')./ ...
+    size(mean_uncertainty_diffs,2))
 
 % Find confidence intervals
 % http://ch.mathworks.com/matlabcentral/answers/159417-how-to-calculate-the-confidence-interva
@@ -100,6 +103,7 @@ SEM_rmses = [];
 SEM_wrmses = [];
 SEM_mlls = [];
 SEM_wmlls = [];
+SEM_uncertainty_diffs = [];
 
 for j = 1:length(methods)
 
@@ -112,6 +116,9 @@ for j = 1:length(methods)
     SEM_mlls(j,:) = (std(squeeze(mlls(j,:,:))', 'omitnan')/...
         sqrt(length(trials)));
     SEM_wmlls(j,:) = (std(squeeze(wmlls(j,:,:))', 'omitnan')/...
+        sqrt(length(trials)));
+    SEM_uncertainty_diffs(j,:) = ...
+        (std(squeeze(uncertainty_diffs(j,:,:))', 'omitnan')/...
         sqrt(length(trials)));
     
 end
@@ -137,64 +144,62 @@ if (do_plot)
     figure;
     
     %% Trace of P %%
-    subplot(1,3,1)
-    hold on
-    h = zeros(3,1);
-    boundedline( ...
-        time_vector, mean_P_traces(1,:), SEM_P_traces(1,:)*ts, ...
-        time_vector, mean_P_traces(2,:), SEM_P_traces(2,:)*ts, ...
-        time_vector, mean_P_traces(3,:), SEM_P_traces(3,:)*ts, ...
-        'alpha', 'cmap', colours, 'transparency', transparency);
-     
-    for i = 1:length(methods)
-        P_trace = mean_P_traces(i,:);
-        h(i) = plot(time_vector, P_trace, 'LineWidth', line_width, ...
-            'Color', colours(i,:));
-    end
-    
-    h_xlabel = xlabel('Time (s)');
-    h_ylabel = ylabel('Tr(\itP\rm)');
-    set([h_xlabel, h_ylabel], ...
-        'FontName'   , 'Helvetica');
-    
-    set(gca, ...
-        'Box'         , 'off'     , ...
-        'TickDir'     , 'out'     , ...
-        'TickLength'  , [.02 .02] , ...
-        'XMinorTick'  , 'on'      , ...
-        'YMinorTick'  , 'on'      , ...
-        'YGrid'       , 'on'      , ...
-        'XColor'      , [.3 .3 .3], ...
-        'YColor'      , [.3 .3 .3], ...
-        'YScale'      , 'log'     , ...
-        'YGrid'       , 'on'      , ...
-        'LineWidth'   , line_width         , ...
-        'FontSize'    , text_size, ...
-        'FontName'    , 'Times', ...
-        'LooseInset', max(get(gca,'TightInset'), 0.02));
-    set(gca, 'YTick', [0, 10.^1, 10.^2]);
-    axis([0 time_vector(end) 0 400])
-    rescale_axes(rescale_factor);
-    pbaspect(gca, plot_aspect_ratio)
-    hold off
+%     subplot(1,3,1)
+%     hold on
+%     h = zeros(2,1);
+%     boundedline( ...
+%         time_vector, mean_P_traces(1,:), SEM_P_traces(1,:)*ts, ...
+%         time_vector, mean_P_traces(2,:), SEM_P_traces(2,:)*ts, ...
+%         'alpha', 'cmap', colours, 'transparency', transparency);
+%      
+%     for i = 1:length(methods)
+%         P_trace = mean_P_traces(i,:);
+%         h(i) = plot(time_vector, P_trace, 'LineWidth', line_width, ...
+%             'Color', colours(i,:));
+%     end
+%     
+%     h_xlabel = xlabel('Time (s)');
+%     h_ylabel = ylabel('Tr(\itP\rm)');
+%     set([h_xlabel, h_ylabel], ...
+%         'FontName'   , 'Helvetica');
+%     
+%     set(gca, ...
+%         'Box'         , 'off'     , ...
+%         'TickDir'     , 'out'     , ...
+%         'TickLength'  , [.02 .02] , ...
+%         'XMinorTick'  , 'on'      , ...
+%         'YMinorTick'  , 'on'      , ...
+%         'YGrid'       , 'on'      , ...
+%         'XColor'      , [.3 .3 .3], ...
+%         'YColor'      , [.3 .3 .3], ...
+%         'YScale'      , 'log'     , ...
+%         'YGrid'       , 'on'      , ...
+%         'LineWidth'   , line_width         , ...
+%         'FontSize'    , text_size, ...
+%         'FontName'    , 'Times', ...
+%         'LooseInset', max(get(gca,'TightInset'), 0.02));
+%     set(gca, 'YTick', [0, 10.^1, 10.^2]);
+%     axis([0 time_vector(end) 0 400])
+%     rescale_axes(rescale_factor);
+%     pbaspect(gca, plot_aspect_ratio)
+%     hold off
     
     %% RMSE %%
-    subplot(1,3,2)
+    subplot(1,2,1)
     hold on
     boundedline(...
-        time_vector, mean_rmses(1,:), SEM_rmses(1,:)*ts, ...
-        time_vector, mean_rmses(2,:), SEM_rmses(2,:)*ts, ...
-        time_vector, mean_rmses(3,:), SEM_rmses(3,:)*ts, ...
+        time_vector, mean_wrmses(1,:), SEM_wrmses(1,:)*ts, ...
+        time_vector, mean_wrmses(2,:), SEM_wrmses(2,:)*ts, ...
         'alpha', 'cmap', colours, 'transparency', transparency);
      
     for i = 1:length(methods)
-        rmse = mean_rmses(i,:);
+        rmse = mean_wrmses(i,:);
         h(i) = plot(time_vector, rmse, 'LineWidth', line_width, ...
             'Color', colours(i,:));
     end
     
     h_xlabel = xlabel('Time (s)');
-    h_ylabel = ylabel('RMSE');
+    h_ylabel = ylabel('WRMSE');
     set([h_xlabel, h_ylabel], ...
         'FontName'   , 'Helvetica');
     set(gca, ...
@@ -216,22 +221,24 @@ if (do_plot)
     pbaspect(gca, plot_aspect_ratio)
     hold off
   
-    %% MLL %%
-    subplot(1,3,3)
+    %% Uncertainty diff %%
+    subplot(1,2,2)
     hold on
     boundedline( ...
-        time_vector, mean_mlls(1,:), SEM_mlls(1,:)*ts, ...
-        time_vector, mean_mlls(2,:), SEM_mlls(2,:)*ts, ...
-        time_vector, mean_mlls(3,:), SEM_mlls(3,:)*ts, ...
+        time_vector, mean_uncertainty_diffs(1,:), ...
+        SEM_uncertainty_diffs(1,:)*ts, ...
+        time_vector, mean_uncertainty_diffs(2,:), ...
+        SEM_uncertainty_diffs(2,:)*ts, ...
         'alpha', 'cmap', colours, 'transparency', transparency);
      
     for i = 1:length(methods)
-        mll = mean_mlls(i,:);
-        h(i) = plot(time_vector, mll, 'LineWidth', line_width, 'Color', colours(i,:));
+        uncertainty_diff = mean_uncertainty_diffs(i,:);
+        h(i) = plot(time_vector, uncertainty_diff, ...
+            'LineWidth', line_width, 'Color', colours(i,:));
     end
     
     h_xlabel = xlabel('Time (s)');
-    h_ylabel = ylabel('MLL');
+    h_ylabel = ylabel('Uncertainty reduction \Delta \sigma^2');
     set([h_xlabel, h_ylabel], ...
         'FontName'   , 'Helvetica');
     set(gca, ...
@@ -243,13 +250,13 @@ if (do_plot)
         'YGrid'       , 'on'      , ...
         'XColor'      , [.3 .3 .3], ...
         'YColor'      , [.3 .3 .3], ...
-        'YTick'       , -1.5:0.5:0.5      , ...
+        'YTick'       , -1:0.5:1      , ...
         'LineWidth'   , line_width         , ...
         'FontSize'    , text_size, ...
         'FontName'    , 'Times', ...
         'LooseInset', max(get(gca,'TightInset'), 0.02));
     rescale_axes(rescale_factor);
-    axis([0 time_vector(end) -1.5 0.5])
+    axis([0 time_vector(end) -1 1])
     pbaspect(gca, plot_aspect_ratio)
     hold off
     set(gcf,'color','w');
@@ -259,14 +266,13 @@ if (do_plot)
         fig.PaperUnits = 'inches';
         fig.PaperPosition = paper_pos;
         fig.PaperPositionMode = 'manual';
-       % print(fig, '-depsc2', [file_path, 'methods.eps'], '-loose', '-painters');
-        export_fig -depsc2 methods.eps -opengl
+        export_fig -depsc2 adaptive_planning_evaluation.eps -opengl
     end
     
         
     if (show_legend)
-        h_legend = legend(h, 'CMA-ES', 'RIG-tree', 'Coverage', 'Random');
-        %h_legend = legend(h, methods);
+        %h_legend = legend(h, 'CMA-ES', 'RIG-tree', 'Coverage', 'Random');
+        h_legend = legend(h, 'Adaptive', 'Non-adaptive');
         set(h_legend, 'Location', 'SouthOutside');
         set(h_legend, 'orientation', 'horizontal')
         set(h_legend, 'box', 'off');
