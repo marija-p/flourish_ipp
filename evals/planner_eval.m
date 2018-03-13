@@ -5,7 +5,7 @@ append_to_logger = 1;
 
 % Number of trials to run
 if (~append_to_logger)
-    num_trials = 30;
+    num_trials = 1;
 else
     trials = fieldnames(logger);
     trials = regexp(trials,'\d*','Match');
@@ -28,7 +28,7 @@ dim_y_env = 30;
 planning_params.time_budget = 200;  % [s]
 
 %opt_methods = {'none', 'cmaes', 'fmc', 'bo'};
-opt_methods = {'bo'};
+opt_methods = {'sa'};
 %opt_methods = {};
 
 % opt_params.cov_x = 10;
@@ -64,7 +64,7 @@ for i = 1:num_trials
         rng(t*j*planning_params.time_budget, 'twister');
         [metrics, ~] = GP_iros(matlab_params, ...
             planning_params, opt_params, map_params, ground_truth_map);
-        logger.(['trial', num2str(t)]).([opt_methods{j}, '_LCB']) = ...
+        logger.(['trial', num2str(t)]).([opt_methods{j}]) = ...
             metrics;
     end
     

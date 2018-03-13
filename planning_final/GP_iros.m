@@ -119,6 +119,9 @@ while (true)
     elseif (strcmp(opt_params.opt_method, 'bo'))
         path_optimized = optimize_with_bo(path, grid_map, map_params, ...
             planning_params);
+    elseif (strcmp(opt_params.opt_method, 'sa'))
+        path_optimized = optimize_with_sa(path, grid_map, map_params, ...
+            planning_params);
     else
         path_optimized = path;
     end

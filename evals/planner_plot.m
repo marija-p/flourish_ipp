@@ -8,12 +8,12 @@ line_width = 0.7;
 
 do_plot = 1;
 do_print = 0;
-show_legend = 0;
+show_legend = 1;
 
 paper_pos = [0, 0, 6, 4];
 
 trials = fieldnames(logger);
-methods = {'cmaes', 'rig', 'coverage', 'random'};
+methods = {'bo', 'cmaes', 'sa'};
 %methods = fieldnames(logger.trial1);
 
 time_vector = 0:0.1:200;
@@ -81,7 +81,7 @@ median_mlls = median(mlls,3);
 median_wmlls = median(wmlls,3);
 
 % Print average values.
-disp(methods(2:end))
+disp(methods)
 disp('Mean P traces: ')
 disp(sum(mean_P_traces, 2, 'omitnan')./size(mean_P_traces,2));
 disp('Mean RMSEs: ')
@@ -265,8 +265,8 @@ if (do_plot)
     
         
     if (show_legend)
-        h_legend = legend(h, 'CMA-ES', 'RIG-tree', 'Coverage', 'Random');
-        %h_legend = legend(h, methods);
+        %h_legend = legend(h, 'CMA-ES', 'RIG-tree', 'Coverage', 'Random');
+        h_legend = legend(h, methods);
         set(h_legend, 'Location', 'SouthOutside');
         set(h_legend, 'orientation', 'horizontal')
         set(h_legend, 'box', 'off');

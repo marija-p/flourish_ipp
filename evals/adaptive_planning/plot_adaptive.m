@@ -1,5 +1,5 @@
-rescale_factor = 0.95;
-text_size = 10.5;
+rescale_factor = 15;
+text_size = 11.5;
 plot_aspect_ratio = [1 1 1];
 line_width = 0.7;
 
@@ -10,7 +10,7 @@ show_legend = 0;
 paper_pos = [0, 0, 6, 4];
 
 trials = fieldnames(logger);
-methods = {'cmaes_adaptive', 'none_nonadaptive'};
+methods = {'cmaes_adaptive', 'cmaes_nonadaptive'};
 
 time_vector = 0:0.1:200;
 
@@ -185,7 +185,7 @@ if (do_plot)
 %     hold off
     
     %% RMSE %%
-    subplot(1,2,1)
+    %subplot(1,2,1)
     hold on
     boundedline(...
         time_vector, mean_wrmses(1,:), SEM_wrmses(1,:)*ts, ...
@@ -216,13 +216,15 @@ if (do_plot)
         'FontSize'    , text_size, ...
         'FontName'    , 'Times', ...
         'LooseInset', max(get(gca,'TightInset'), 0.02));
-    rescale_axes(rescale_factor);
+    %rescale_axes(rescale_factor);
     axis([0 time_vector(end) 0 0.2])
     pbaspect(gca, plot_aspect_ratio)
+    set(gcf,'color','w');
     hold off
   
     %% Uncertainty diff %%
-    subplot(1,2,2)
+    figure;
+    %subplot(1,2,2)
     hold on
     boundedline( ...
         time_vector, mean_uncertainty_diffs(1,:), ...
@@ -255,7 +257,7 @@ if (do_plot)
         'FontSize'    , text_size, ...
         'FontName'    , 'Times', ...
         'LooseInset', max(get(gca,'TightInset'), 0.02));
-    rescale_axes(rescale_factor);
+    %rescale_axes(rescale_factor);
     axis([0 time_vector(end) -1 1])
     pbaspect(gca, plot_aspect_ratio)
     hold off

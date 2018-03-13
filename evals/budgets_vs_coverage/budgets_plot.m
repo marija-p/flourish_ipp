@@ -14,7 +14,7 @@ if (plot_P_trace_final)
     h_cov = plot([0 700], [100, 100], 'LineWidth', 1, ...
         'Color', [0.8500, 0.3250, 0.0980]);
     % Shading.
-    for i = [60, 160, 260, 360, 460, 560]
+    for i = [0.4, 160, 260, 360, 460, 560]
         area([i i+80], [200 200], 'FaceAlpha', 0.08, 'LineStyle', 'None', ...
             'FaceColor', [0, 0.2470, 0.4410]);
     end
@@ -47,6 +47,9 @@ if (plot_P_trace_final)
         'FontSize'    , 14, ...
         'FontName'    , 'Times', ...
         'LooseInset', max(get(gca,'TightInset'), 0.02));
+    
+    h_legend = legend([bp.handles.box(1,1), h_cov], {'CMA-ES', 'Cov.'}, ...
+        'Location', 'southeast');
     
 end
 
