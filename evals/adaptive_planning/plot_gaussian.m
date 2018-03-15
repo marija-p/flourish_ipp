@@ -10,7 +10,7 @@ show_legend = 0;
 paper_pos = [0, 0, 6, 4];
 
 trials = fieldnames(logger);
-methods = {'cmaes_adaptive', 'cmaes_nonadaptive'};
+methods = {'cmaes', 'cmaes_nonadaptive'};
 
 time_vector = 0:0.1:200;
 
@@ -21,9 +21,8 @@ rmses = zeros(length(methods)-1,length(time_vector));
 wrmses = zeros(length(methods)-1,length(time_vector));
 mlls = zeros(length(methods)-1,length(time_vector));
 wmlls = zeros(length(methods)-1,length(time_vector));
-uncertainty_diffs = zeros(length(methods)-1,length(time_vector));
 
-for i = 1:length(trials)
+for i = 1:15
     
     for j = 1:length(methods)
        
@@ -43,7 +42,6 @@ for i = 1:length(trials)
         wrmse = logger.(trials{i}).(methods{j}).wrmses;
         mll = logger.(trials{i}).(methods{j}).mlls;
         wmll = logger.(trials{i}).(methods{j}).wmlls;
-        uncertainty_diff = logger.(trials{i}).(methods{j}).uncertainty_diff;
         
         ts = timeseries(P_trace, time);
         ts_resampled = resample(ts, time_vector, 'zoh');
@@ -73,10 +71,6 @@ for i = 1:length(trials)
         ts_resampled = resample(ts, time_vector, 'zoh');
         wmlls(j,:,i) = ts_resampled.data';
         
-        ts = timeseries(uncertainty_diff, time);
-        ts_resampled = resample(ts, time_vector, 'zoh');
-        uncertainty_diffs(j,:,i) = ts_resampled.data;
-        
     end
     
 end
@@ -89,14 +83,12 @@ mean_rmses = sum(rmses,3)./length(trials);
 mean_wrmses = sum(wrmses,3)./length(trials);
 mean_mlls = sum(mlls,3)./length(trials);
 mean_wmlls = sum(wmlls,3)./length(trials);
-mean_uncertainty_diffs = sum(uncertainty_diffs,3)./length(trials);
 median_P_traces = median(P_traces,3);
 median_P_traces_interesting = median(P_traces_interesting,3);
 median_P_traces_uninteresting = median(P_traces_uninteresting,3);
 median_rmses = median(rmses,3);
 median_wrmses = median(wrmses,3);
 median_mlls = median(mlls,3);
-median_uncertainty_diffs = median(uncertainty_diffs,3);
 
 % Print average values.
 disp(methods(2:end))
@@ -116,9 +108,6 @@ disp('Mean MLLs: ')
 disp(sum(mean_mlls, 2, 'omitnan')./size(mean_mlls,2));
 disp('Mean WMLLs: ')
 disp(sum(mean_wmlls, 2, 'omitnan')./size(mean_wmlls,2));
-disp('Mean Uncertainty Diffs: ')
-disp(sum(mean_uncertainty_diffs, 2, 'omitnan')./ ...
-    size(mean_uncertainty_diffs,2))
 
 % Find confidence intervals
 % http://ch.mathworks.com/matlabcentral/answers/159417-how-to-calculate-the-confidence-interva
@@ -129,7 +118,6 @@ SEM_rmses = [];
 SEM_wrmses = [];
 SEM_mlls = [];
 SEM_wmlls = [];
-SEM_uncertainty_diffs = [];
 
 for j = 1:length(methods)
 
@@ -148,9 +136,6 @@ for j = 1:length(methods)
     SEM_mlls(j,:) = (std(squeeze(mlls(j,:,:))', 'omitnan')/...
         sqrt(length(trials)));
     SEM_wmlls(j,:) = (std(squeeze(wmlls(j,:,:))', 'omitnan')/...
-        sqrt(length(trials)));
-    SEM_uncertainty_diffs(j,:) = ...
-        (std(squeeze(uncertainty_diffs(j,:,:))', 'omitnan')/...
         sqrt(length(trials)));
     
 end
@@ -213,6 +198,7 @@ if (do_plot)
 %     set(gca, 'YTick', [0, 10.^1, 10.^2]);
 %     axis([0 time_vector(end) 0 400])
 %     %rescale_axes(rescale_factor);
+%     set(gcf,'color','w');
 %     pbaspect(gca, plot_aspect_ratio)
 %     hold off
     
@@ -254,8 +240,8 @@ if (do_plot)
     set(gca, 'YTick', [0, 10.^1, 10.^2]);
     axis([0 time_vector(end) 0 400])
     %rescale_axes(rescale_factor);
-    pbaspect(gca, plot_aspect_ratio)
     set(gcf,'color','w');
+    pbaspect(gca, plot_aspect_ratio)
     hold off
     
     %% RMSE %%
@@ -296,47 +282,6 @@ if (do_plot)
     pbaspect(gca, plot_aspect_ratio)
     set(gcf,'color','w');
     hold off
-  
-    %% Uncertainty diff %%
-    figure;
-    %subplot(1,2,2)
-    hold on
-    boundedline( ...
-        time_vector, mean_uncertainty_diffs(1,:), ...
-        SEM_uncertainty_diffs(1,:)*ts, ...
-        time_vector, mean_uncertainty_diffs(2,:), ...
-        SEM_uncertainty_diffs(2,:)*ts, ...
-        'alpha', 'cmap', colours, 'transparency', transparency);
-     
-    for i = 1:length(methods)
-        uncertainty_diff = mean_uncertainty_diffs(i,:);
-        h(i) = plot(time_vector, uncertainty_diff, ...
-            'LineWidth', line_width, 'Color', colours(i,:));
-    end
-    
-    h_xlabel = xlabel('Time (s)');
-    h_ylabel = ylabel('Uncertainty difference \Delta \sigma^2');
-    set([h_xlabel, h_ylabel], ...
-        'FontName'   , 'Helvetica');
-    set(gca, ...
-        'Box'         , 'off'     , ...
-        'TickDir'     , 'out'     , ...
-        'TickLength'  , [.02 .02] , ...
-        'XMinorTick'  , 'on'      , ...
-        'YMinorTick'  , 'on'      , ...
-        'YGrid'       , 'on'      , ...
-        'XColor'      , [.3 .3 .3], ...
-        'YColor'      , [.3 .3 .3], ...
-        'YTick'       , -1:0.5:1      , ...
-        'LineWidth'   , line_width         , ...
-        'FontSize'    , text_size, ...
-        'FontName'    , 'Times', ...
-        'LooseInset', max(get(gca,'TightInset'), 0.02));
-    %rescale_axes(rescale_factor);
-    axis([0 time_vector(end) -1 1])
-    pbaspect(gca, plot_aspect_ratio)
-    hold off
-    set(gcf,'color','w');
     
     if (do_print)
         fig = gcf;

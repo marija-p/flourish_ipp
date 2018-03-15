@@ -1,5 +1,5 @@
 trials = fieldnames(logger);
-methods = {'none_adaptive', 'none_nonadaptive'};
+methods = {'cmaes_adaptive', 'cmaes_nonadaptive'};
 
 for i = 16:length(trials)
    
