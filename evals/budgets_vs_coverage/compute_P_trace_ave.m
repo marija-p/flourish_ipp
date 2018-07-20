@@ -18,4 +18,4 @@ for i = 1:length(trials)
     P_traces(:,i) = ts_resampled.data';
 end
 
-P_traces_ave = sum(P_traces,1,'omitnan') ./ size(P_traces,1)
+P_traces_ave = sum(P_traces,1,'omitnan') ./ size(P_traces,1);

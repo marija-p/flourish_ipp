@@ -44,7 +44,7 @@ planning_params_greedy.control_points = 2;
 
 %logger = struct;
 
-for i = 19:num_trials
+for i = 18:18
 
     if (~append_to_logger)
         t = i;

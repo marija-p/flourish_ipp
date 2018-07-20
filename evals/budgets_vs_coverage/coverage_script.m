@@ -3,8 +3,8 @@
 
 % Fixed lawnmower coverage altitude
 %coverage_altitude = 12.99;
-coverage_altitude = 6.5;
-%coverage_altitude = 8.66;
+%coverage_altitude = 6.5;
+coverage_altitude = 8.66;
 %coverage_altitude = 5.2;
     
 % Environment parameters
@@ -16,7 +16,7 @@ dim_y_env = 30;
 	opt_params, map_params] = load_params(dim_x_env, dim_y_env);
 
 % Initialize velocity.
-planning_params.max_vel = 0.182;
+planning_params.max_vel = 0.73;
 
 rng(matlab_params.seed_num, 'twister');
 
@@ -31,4 +31,4 @@ disp(['Velocity: ', num2str(planning_params.max_vel)]);
 
 disp(['Final Tr(P): ', num2str(metrics.P_traces(end))]);
 
-close all;
+%close all;
