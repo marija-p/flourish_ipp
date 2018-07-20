@@ -22,7 +22,7 @@ wrmses = zeros(length(methods)-1,length(time_vector));
 mlls = zeros(length(methods)-1,length(time_vector));
 wmlls = zeros(length(methods)-1,length(time_vector));
 
-for i = 1:15
+for i = 1:30
     
     for j = 1:length(methods)
        
@@ -218,7 +218,7 @@ if (do_plot)
     end
     
     h_xlabel = xlabel('Time (s)');
-    h_ylabel = ylabel('Tr(\itP\rm)');
+    h_ylabel = ylabel('Tr($P$) of $\mathcal{X}_I$', 'interpreter', 'latex');
     set([h_xlabel, h_ylabel], ...
         'FontName'   , 'Helvetica');
     

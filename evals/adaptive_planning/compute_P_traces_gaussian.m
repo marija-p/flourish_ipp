@@ -9,8 +9,8 @@ end
 
 methods = {'cmaes', 'cmaes_nonadaptive'};
 
-for i = 1:15
-%for i = 1:length(trials)
+%for i = 1:15
+for i = 1:length(trials)
    
     % Make sure to use the same random seed!
     t = trials_names(i);

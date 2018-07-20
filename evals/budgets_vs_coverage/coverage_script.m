@@ -16,7 +16,7 @@ dim_y_env = 30;
 	opt_params, map_params] = load_params(dim_x_env, dim_y_env);
 
 % Initialize velocity.
-planning_params.max_vel = 0.73;
+planning_params.max_vel = 0.32;
 
 rng(matlab_params.seed_num, 'twister');
 
