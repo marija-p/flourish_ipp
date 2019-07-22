@@ -1,5 +1,4 @@
-function [ground_truth_map] = create_continuous_map(dim_x, dim_y, ...
-    cluster_radius, min_value, max_value)
+function [ground_truth_map] = create_continuous_map(dim_x, dim_y, cluster_radius)
 % Creates 2D 'farmland' environment with random distribution of % veg.
 % cover.
 %
@@ -17,8 +16,8 @@ visualize = 0;
 
 % Vegetation cover range (%).
 % veg_cover ∈ [veg_cover_min, veg_cover_max]
-veg_cover_min = min_value;
-veg_cover_max = max_value;
+veg_cover_min = 0;
+veg_cover_max = 1;
 
 % Create map.
 n_y = dim_y*2;

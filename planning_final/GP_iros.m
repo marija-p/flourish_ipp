@@ -14,7 +14,6 @@ predict_dim_x = dim_x*1;
 predict_dim_y = dim_y*1;
 
 % Gaussian Process
-
 cov_func = {'covMaterniso', 3};
 lik_func = @likGauss;
 inf_func = @infExact;
@@ -102,9 +101,9 @@ while (true)
     path = search_lattice(point_prev, lattice, grid_map, map_params, ...
         planning_params);
     obj = compute_objective(path, grid_map, map_params, planning_params);
-    %disp(['Objective before optimization: ', num2str(obj)]);
+    disp(['Objective before optimization: ', num2str(obj)]);
     
-    %disp(toc);
+    disp(toc);
     %keyboard
     
     %% STEP 2. Path optimization.
@@ -118,9 +117,6 @@ while (true)
             planning_params);
     elseif (strcmp(opt_params.opt_method, 'bo'))
         path_optimized = optimize_with_bo(path, grid_map, map_params, ...
-            planning_params);
-    elseif (strcmp(opt_params.opt_method, 'sa'))
-        path_optimized = optimize_with_sa(path, grid_map, map_params, ...
             planning_params);
     else
         path_optimized = path;
@@ -159,15 +155,15 @@ while (true)
 
     Y_sigma = sqrt(diag(grid_map.P)');
     P_post = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
-    %disp(['Trace after execution: ', num2str(trace(grid_map.P))]);
-    %disp(['Time after execution: ', num2str(get_trajectory_total_time(trajectory))]);
+    disp(['Trace after execution: ', num2str(trace(grid_map.P))]);
+    disp(['Time after execution: ', num2str(get_trajectory_total_time(trajectory))]);
     gain = P_trace_prev - trace(grid_map.P);
     if (strcmp(planning_params.obj, 'rate'))
         cost = max(get_trajectory_total_time(trajectory), 1/planning_params.measurement_frequency);
-        %disp(['Objective after execution: ', num2str(-gain/cost)]);
+        disp(['Objective after execution: ', num2str(-gain/cost)]);
     elseif (strcmp(planning_params.obj, 'exponential'))
         cost = get_trajectory_total_time(trajectory);
-        %disp(['Objective after execution: ', num2str(-gain*exp(-planning_params.lambda*cost))]);
+        disp(['Objective after execution: ', num2str(-gain*exp(-planning_params.lambda*cost))]);
     end
     
     metrics.points_meas = [metrics.points_meas; points_meas];

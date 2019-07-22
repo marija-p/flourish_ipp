@@ -1,22 +1,19 @@
-file_path = '~\PhD\Submissions\asldoc-2017-tbd-popovic\images\';
+file_path = '~\PhD\Submissions\asldoc-2017-iros-popovic\images\';
 
 %rescale_factor = 1;
-rescale_factor = 0.89;
-text_size = 10;
-plot_aspect_ratio = [1 2 1];
-line_width = 0.7;
+rescale_factor = 0.75;
+text_size = 10.5;
 
-do_plot = 1;
-do_print = 0;
+do_plot = 0;
+do_print = 1;
 show_legend = 1;
 
 paper_pos = [0, 0, 6, 4];
 
 trials = fieldnames(logger);
-methods = {'bo', 'cmaes', 'sa'};
-%methods = fieldnames(logger.trial1);
+methods = fieldnames(logger.trial1);
 
-time_vector = 0:0.1:200;
+time_vector = 0:0.1:600;
 
 P_traces = zeros(length(methods)-1,length(time_vector));
 rmses = zeros(length(methods)-1,length(time_vector));
@@ -26,15 +23,12 @@ wmlls = zeros(length(methods)-1,length(time_vector));
 
 for i = 1:length(trials)
     
-    for j = 1:length(methods)
+    for j = 2:length(methods)
        
         try
            time = logger.(trials{i}).(methods{j}).times;
         catch
            disp(['Cant find ', trials{i}, ' ' methods{j}])
-           logger = rmfield(logger, trials{i});
-           trials(i) = [];
-           i = i - 1;
            break;
         end
             
@@ -46,23 +40,23 @@ for i = 1:length(trials)
 
         ts = timeseries(P_trace, time);
         ts_resampled = resample(ts, time_vector, 'zoh');
-        P_traces(j,:,i) = ts_resampled.data';
+        P_traces(j-1,:,i) = ts_resampled.data';
         
         ts = timeseries(rmse, time);
         ts_resampled = resample(ts, time_vector, 'zoh');
-        rmses(j,:,i) = ts_resampled.data';
+        rmses(j-1,:,i) = ts_resampled.data';
      
         ts = timeseries(wrmse, time);
         ts_resampled = resample(ts, time_vector, 'zoh');
-        wrmses(j,:,i) = ts_resampled.data';
+        wrmses(j-1,:,i) = ts_resampled.data';
  
         ts = timeseries(mll, time);
         ts_resampled = resample(ts, time_vector, 'zoh');
-        mlls(j,:,i) = ts_resampled.data';
+        mlls(j-1,:,i) = ts_resampled.data';
 
         ts = timeseries(wmll, time);
         ts_resampled = resample(ts, time_vector, 'zoh');
-        wmlls(j,:,i) = ts_resampled.data';
+        wmlls(j-1,:,i) = ts_resampled.data';
 
     end
     
@@ -81,7 +75,7 @@ median_mlls = median(mlls,3);
 median_wmlls = median(wmlls,3);
 
 % Print average values.
-disp(methods)
+disp(methods(2:end))
 disp('Mean P traces: ')
 disp(sum(mean_P_traces, 2, 'omitnan')./size(mean_P_traces,2));
 disp('Mean RMSEs: ')
@@ -101,17 +95,17 @@ SEM_wrmses = [];
 SEM_mlls = [];
 SEM_wmlls = [];
 
-for j = 1:length(methods)
+for j = 2:length(methods)
 
-    SEM_P_traces(j,:) = std(squeeze(P_traces(j,:,:))', 'omitnan')/...
+    SEM_P_traces(j-1,:) = std(squeeze(P_traces(j-1,:,:))', 'omitnan')/...
         sqrt(length(trials));
-    SEM_rmses(j,:) = (std(squeeze(rmses(j,:,:))', 'omitnan')/...
+    SEM_rmses(j-1,:) = (std(squeeze(rmses(j-1,:,:))', 'omitnan')/...
         sqrt(length(trials)));
-    SEM_wrmses(j,:) = (std(squeeze(wrmses(j,:,:))', 'omitnan')/...
+    SEM_wrmses(j-1,:) = (std(squeeze(wrmses(j-1,:,:))', 'omitnan')/...
         sqrt(length(trials)));
-    SEM_mlls(j,:) = (std(squeeze(mlls(j,:,:))', 'omitnan')/...
+    SEM_mlls(j-1,:) = (std(squeeze(mlls(j-1,:,:))', 'omitnan')/...
         sqrt(length(trials)));
-    SEM_wmlls(j,:) = (std(squeeze(wmlls(j,:,:))', 'omitnan')/...
+    SEM_wmlls(j-1,:) = (std(squeeze(wmlls(j-1,:,:))', 'omitnan')/...
         sqrt(length(trials)));
     
 end
@@ -123,8 +117,8 @@ colours = [0.8500    0.3250    0.0980;
     0    0.4470    0.7410;
   %  0.9290    0.6940    0.1250;
  %   0.4940    0.1840    0.5560;
-    0.4660    0.6740    0.1880;
-     0.6350    0.0780    0.1840];
+    0.4660    0.6740    0.1880];
+  %   0.6350    0.0780    0.1840;
    %  0.3010    0.7450    0.9330;
     % 0.1379    0.1379    0.0345];
  transparency = 0.3;
@@ -135,21 +129,21 @@ colours = [0.8500    0.3250    0.0980;
 if (do_plot)
         
     figure;
+    plot_ind = [2,5,6];
     
     %% Trace of P %%
     subplot(1,3,1)
     hold on
     h = zeros(3,1);
-    boundedline( ...
-        time_vector, mean_P_traces(1,:), SEM_P_traces(1,:)*ts, ...
-        time_vector, mean_P_traces(2,:), SEM_P_traces(2,:)*ts, ...
-        time_vector, mean_P_traces(3,:), SEM_P_traces(3,:)*ts, ...
+    boundedline( ... %time_vector, mean_P_traces(1,:), SEM_P_traces(1,:)*ts, ...
+        time_vector, mean_P_traces(2,:), SEM_P_traces(2,:)*ts, ... %   time_vector, mean_P_traces(3,:), SEM_P_traces(3,:)*ts, 
+        time_vector, mean_P_traces(5,:), SEM_P_traces(5,:)*ts, ...
+        time_vector, mean_P_traces(6,:), SEM_P_traces(6,:)*ts, ...
         'alpha', 'cmap', colours, 'transparency', transparency);
      
-    for i = 1:length(methods)
-        P_trace = mean_P_traces(i,:);
-        h(i) = plot(time_vector, P_trace, 'LineWidth', line_width, ...
-            'Color', colours(i,:));
+    for i = 1:3
+        P_trace = mean_P_traces(plot_ind(i),:);
+        h(i) = plot(time_vector, P_trace, 'LineWidth', 1, 'Color', colours(i,:));
     end
     
     h_xlabel = xlabel('Time (s)');
@@ -168,29 +162,28 @@ if (do_plot)
         'YColor'      , [.3 .3 .3], ...
         'YScale'      , 'log'     , ...
         'YGrid'       , 'on'      , ...
-        'LineWidth'   , line_width         , ...
+        'LineWidth'   , 1         , ...
         'FontSize'    , text_size, ...
         'FontName'    , 'Times', ...
         'LooseInset', max(get(gca,'TightInset'), 0.02));
     set(gca, 'YTick', [0, 10.^1, 10.^2]);
     axis([0 time_vector(end) 0 400])
     rescale_axes(rescale_factor);
-    pbaspect(gca, plot_aspect_ratio)
+    pbaspect(gca, [1 2 1])
     hold off
     
     %% RMSE %%
     subplot(1,3,2)
     hold on
-    boundedline(...
-        time_vector, mean_rmses(1,:), SEM_rmses(1,:)*ts, ...
-        time_vector, mean_rmses(2,:), SEM_rmses(2,:)*ts, ...
-        time_vector, mean_rmses(3,:), SEM_rmses(3,:)*ts, ...
+    boundedline(... %time_vector, mean_rmses(1,:), SEM_rmses(1,:)*ts, ...
+        time_vector, mean_rmses(2,:), SEM_rmses(2,:)*ts, ... %time_vector, mean_rmses(3,:), SEM_rmses(3,:)*ts, ... 
+        time_vector, mean_rmses(5,:), SEM_rmses(5,:)*ts, ...
+        time_vector, mean_rmses(6,:), SEM_rmses(6,:)*ts, ...
         'alpha', 'cmap', colours, 'transparency', transparency);
      
-    for i = 1:length(methods)
-        rmse = mean_rmses(i,:);
-        h(i) = plot(time_vector, rmse, 'LineWidth', line_width, ...
-            'Color', colours(i,:));
+    for i = 1:3
+        rmse = mean_rmses(plot_ind(i),:);
+        h(i) = plot(time_vector, rmse, 'LineWidth', 1, 'Color', colours(i,:));
     end
     
     h_xlabel = xlabel('Time (s)');
@@ -207,27 +200,27 @@ if (do_plot)
         'XColor'      , [.3 .3 .3], ...
         'YColor'      , [.3 .3 .3], ...
         'YTick'       , 0:0.05:0.2, ...
-        'LineWidth'   , line_width         , ...
+        'LineWidth'   , 1         , ...
         'FontSize'    , text_size, ...
         'FontName'    , 'Times', ...
         'LooseInset', max(get(gca,'TightInset'), 0.02));
     rescale_axes(rescale_factor);
     axis([0 time_vector(end) 0 0.2])
-    pbaspect(gca, plot_aspect_ratio)
+    pbaspect(gca, [1 2 1])
     hold off
   
     %% MLL %%
     subplot(1,3,3)
     hold on
-    boundedline( ...
-        time_vector, mean_mlls(1,:), SEM_mlls(1,:)*ts, ...
-        time_vector, mean_mlls(2,:), SEM_mlls(2,:)*ts, ...
-        time_vector, mean_mlls(3,:), SEM_mlls(3,:)*ts, ...
+    boundedline( ... %time_vector, mean_mlls(1,:), SEM_mlls(1,:)*ts, ...
+        time_vector, mean_mlls(2,:), SEM_mlls(2,:)*ts, ... %time_vector, mean_mlls(3,:), SEM_mlls(3,:)*ts, ... 
+        time_vector, mean_mlls(5,:), SEM_mlls(5,:)*ts, ...
+        time_vector, mean_mlls(6,:), SEM_mlls(6,:)*ts, ...
         'alpha', 'cmap', colours, 'transparency', transparency);
      
-    for i = 1:length(methods)
-        mll = mean_mlls(i,:);
-        h(i) = plot(time_vector, mll, 'LineWidth', line_width, 'Color', colours(i,:));
+    for i = 1:3
+        mll = mean_mlls(plot_ind(i),:);
+        h(i) = plot(time_vector, mll, 'LineWidth', 1, 'Color', colours(i,:));
     end
     
     h_xlabel = xlabel('Time (s)');
@@ -244,13 +237,13 @@ if (do_plot)
         'XColor'      , [.3 .3 .3], ...
         'YColor'      , [.3 .3 .3], ...
         'YTick'       , -1.5:0.5:0.5      , ...
-        'LineWidth'   , line_width         , ...
+        'LineWidth'   , 1         , ...
         'FontSize'    , text_size, ...
         'FontName'    , 'Times', ...
         'LooseInset', max(get(gca,'TightInset'), 0.02));
     rescale_axes(rescale_factor);
     axis([0 time_vector(end) -1.5 0.5])
-    pbaspect(gca, plot_aspect_ratio)
+    pbaspect(gca, [1 2 1])
     hold off
     set(gcf,'color','w');
     
@@ -265,8 +258,7 @@ if (do_plot)
     
         
     if (show_legend)
-        %h_legend = legend(h, 'CMA-ES', 'RIG-tree', 'Coverage', 'Random');
-        h_legend = legend(h, methods);
+        h_legend = legend(h, 'CMA-ES', 'RIG-tree', 'Coverage');
         set(h_legend, 'Location', 'SouthOutside');
         set(h_legend, 'orientation', 'horizontal')
         set(h_legend, 'box', 'off');

@@ -7,13 +7,11 @@ function [metrics, grid_map] = GP_coverage(matlab_parameters, planning_parameter
 
 % Initialize variables.
 
+matlab_parameters.visualize = 1;
+
 % Get map dimensions [cells].
 dim_x = map_parameters.dim_x;
 dim_y = map_parameters.dim_y;
-% Get map dimensions [m].
-dim_x_env = map_parameters.dim_x*map_parameters.resolution;
-dim_y_env = map_parameters.dim_y*map_parameters.resolution;
-
 % Set prediction map dimensions [cells]
 predict_dim_x = dim_x*1;
 predict_dim_y = dim_y*1;
@@ -67,32 +65,45 @@ if Lchol    % L contains chol decomp => use Cholesky parameters (alpha,sW,L)
   grid_map.P = Kss + Ks'*LKs;                    % predictive variances
 end
 
+%% This is just to test in case of no-inference using only the kernel
+% sn2=exp(2*hyp.lik);
+% K = feval(cov_func{:},hyp.cov,X_ref);
+% KplusR = K+ sn2*eye(length(K));
+% grid_map.P = KplusR;
+%%
 
 %% Coverage Planning %%
 
 % Set starting point.
-submap_edge_size = get_submap_edge_size_env(coverage_altitude, ...
-    planning_parameters);
-point = [-dim_y_env/2+submap_edge_size.y/2, ...
-    -dim_x_env/2+submap_edge_size.x/2, coverage_altitude];
+submap_edge_size = get_submap_edge_size(coverage_altitude, ...
+    map_parameters, planning_parameters);
+point = [submap_edge_size.y/2, submap_edge_size.x/2, coverage_altitude];
 
 % Create plan (deterministic).
 path = point;
 i = 0;
 
-while (path(end,1) < dim_x_env/2)
+while (path(end,1) < map_parameters.dim_x)
    
     % Move in y.
     if (mod(i,2) == 0)
-        while (path(end,2) < (dim_y_env/2) - submap_edge_size.y/2)
-            point = path(end,:) + [0, (submap_edge_size.y)/2, 0];
-            path = [path; point];
-        end
+        point = path(end,:) + [0, (map_parameters.dim_y-submap_edge_size.y)/4, 0];
+        path = [path; point];
+        point = path(end,:) + [0, (map_parameters.dim_y-submap_edge_size.y)/4, 0];
+        path = [path; point];
+        point = path(end,:) + [0, (map_parameters.dim_y-submap_edge_size.y)/4, 0];
+        path = [path; point];
+        point = path(end,:) + [0, (map_parameters.dim_y-submap_edge_size.y)/4, 0];
+        path = [path; point];
     else
-        while (path(end,2) > -dim_y_env/2 + submap_edge_size.y/2)
-            point = path(end,:) - [0, (submap_edge_size.y)/2, 0];
-            path = [path; point];
-        end    
+        point = path(end,:) - [0, (map_parameters.dim_y-submap_edge_size.y)/4, 0];
+        path = [path; point];
+        point = path(end,:) - [0, (map_parameters.dim_y-submap_edge_size.y)/4, 0];
+        path = [path; point];
+        point = path(end,:) - [0, (map_parameters.dim_y-submap_edge_size.y)/4, 0];
+        path = [path; point];
+        point = path(end,:) - [0, (map_parameters.dim_y-submap_edge_size.y)/4, 0];
+        path = [path; point];     
     end
     
     % Move in x.
@@ -104,6 +115,9 @@ end
 
 % Remove the last waypoint (out of bounds).
 path = path(1:end-1, :);
+path = grid_to_env_coordinates(path, map_parameters);
+
+
 
 %% Execution %%
 metrics = initialize_metrics();

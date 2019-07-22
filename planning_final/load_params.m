@@ -38,8 +38,6 @@ planning_params.lattice_height_increment = 8;
 planning_params.lower_threshold = 0.4;
 % Whether to use the threshold value for active planning
 planning_params.use_threshold = 1;
-% Design parameter for uncertainty-aware adaptive planning
-planning_params.beta = 0.05;
 
 % Objective function for planning
 planning_params.obj = 'rate';    % 'rate'/'exponential'

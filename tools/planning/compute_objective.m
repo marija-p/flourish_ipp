@@ -25,10 +25,8 @@ trajectory = ...
     1/planning_parameters.measurement_frequency);
 
 if (planning_parameters.use_threshold)
+    above_thres_ind = find(grid_map.m >= planning_parameters.lower_threshold);
     P = reshape(diag(grid_map.P)', size(grid_map.m));
-    above_thres_ind = find(grid_map.m + ...
-        planning_parameters.beta*sqrt(P) >= ...
-        planning_parameters.lower_threshold);
     P_i = sum(P(above_thres_ind));
 else
     P_i = trace(grid_map.P);
@@ -43,23 +41,15 @@ end
 if (any(points_meas(:,1) > dim_x_env/2) || ...
         any(points_meas(:,2) > dim_y_env/2) || ...
         any(points_meas(:,1) < -dim_x_env/2) || ...
-        any(points_meas(:,2) < -dim_y_env/2) || ...
-        any(points_meas(:,3) < planning_parameters.min_height) || ...
-        any(points_meas(:,3) > planning_parameters.max_height))
+        any(points_meas(:,2) < -dim_y_env/2))
     obj = Inf;
     return;
 end
 
 % Predict measurements along the path.
 for i = 1:size(points_meas,1)
-    % Discard crappy solutions.
-    try
-        grid_map = predict_map_update(points_meas(i,:), grid_map, ...
-            map_parameters, planning_parameters);
-    catch
-        obj = Inf;
-        return;
-    end
+    grid_map = predict_map_update(points_meas(i,:), grid_map, ...
+        map_parameters, planning_parameters);
 end
 
 if (planning_parameters.use_threshold)

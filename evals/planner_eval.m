@@ -1,21 +1,7 @@
-%clear all; close all; clc;
-
-% If data already exists, want to append to it for the trials it contains.
-append_to_logger = 1;
+    %clear all; close all; clc;
 
 % Number of trials to run
-if (~append_to_logger)
-    num_trials = 1;
-else
-    trials = fieldnames(logger);
-    trials = regexp(trials,'\d*','Match');
-    trials = [trials{:}];
-    trials_names = [];
-    for i = 1:length(trials)
-        trials_names = ...
-            [trials_names; str2num(cell2mat(trials(i)))];
-    end
-end
+num_trials = 1;
 
 % Environment parameters
 max_cluster_radius = 3;
@@ -25,48 +11,31 @@ dim_y_env = 30;
 
 [matlab_params, planning_params, ...
 	opt_params, map_params] = load_params(dim_x_env, dim_y_env);
-planning_params.time_budget = 200;  % [s]
-planning_params.use_threshold = 0;
+planning_params.time_budget = 600;  % [s]
 
 %opt_methods = {'none', 'cmaes', 'fmc', 'bo'};
-opt_methods = {'cmaes'};
-%opt_methods = {};
-
-%opt_params.cov_x = 10;
-%opt_params.cov_y = 10;
-%opt_params.cov_z = 12;
-
+opt_methods = {};
 use_rig = 0; subtree_iters = 500;
-use_coverage = 0; coverage_altitude = 8.66; coverage_vel = 0.8;  %0.78 * (200/280)
-use_random = 0; 
-use_greedy = 0; planning_params_greedy = planning_params;
-planning_params_greedy.control_points = 2;
+use_coverage = 1; coverage_altitude = 8.66; coverage_vel = 0.78 * (200/280);
 
 %logger = struct;
 
-for i = 18:18
-
-    if (~append_to_logger)
-        t = i;
-    else
-        t = trials_names(i);
-    end
-
+for t = 1:num_trials
+   
     logger.(['trial', num2str(t)]).num = t;
     
     % Generate (continuous) ground truth map.
     rng(t, 'twister');
     cluster_radius = randi([min_cluster_radius, max_cluster_radius]);
     ground_truth_map = create_continuous_map(map_params.dim_x, ...
-        map_params.dim_y, cluster_radius, 0, 1);
+        map_params.dim_y, cluster_radius);
     
-    for j = 1:size(opt_methods,2)
-        opt_params.opt_method = opt_methods{j};
-        rng(t*j*planning_params.time_budget, 'twister');
+    for i = 1:size(opt_methods,2)
+        opt_params.opt_method = opt_methods{i};
+        rng(t*i, 'twister');
         [metrics, ~] = GP_iros(matlab_params, ...
             planning_params, opt_params, map_params, ground_truth_map);
-        logger.(['trial', num2str(t)]).([opt_methods{j}, '_nonadaptive']) = ...
-            metrics;
+        logger.(['trial', num2str(t)]).([opt_methods{i}]) = metrics;
     end
     
     if (use_rig)
@@ -83,21 +52,6 @@ for i = 18:18
         logger.(['trial', num2str(t)]).('coverage') = metrics;
     end
     
-    if (use_random)
-        rng(t, 'twister');
-        [metrics, ~] = GP_random(matlab_params, planning_params, ...
-            map_params, ground_truth_map);
-        logger.(['trial', num2str(t)]).('random') = metrics;
-    end
-    
-    if (use_greedy)
-        rng(t, 'twister')
-        opt_params.opt_method = 'none';
-        [metrics, ~] = GP_iros(matlab_params, ...
-            planning_params_greedy, opt_params, map_params, ground_truth_map);
-        logger.(['trial', num2str(t)]).('greedy') = metrics;
-    end
-    
-    disp(['Completed Trial ', num2str(t)]);
+    disp(['Completed Trial', num2str(t)]);
     
 end

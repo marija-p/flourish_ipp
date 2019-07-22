@@ -49,7 +49,7 @@ hold on
 % Visualize trajectory.
 cline(p(:,1), p(:,2), p(:,3), t);
 % Visualize control points.
-%scatter3(path(:,1), path(:,2), path(:,3), 140, 'xk');
+scatter3(path(:,1), path(:,2), path(:,3), 140, 'xk');
 % Visualize measurements.
 colors_meas = linspace(0, t(end),size(p_meas,1));
 
@@ -64,8 +64,8 @@ scatter3(p_meas(:,1), p_meas(:,2), p_meas(:,3), 60, colors_meas, 'filled');
 xlabel('x (m)')
 ylabel('y (m)')
 zlabel('z (m)')
-axis([-20 20 -20 20 0 35])
-%axis([-1.5 1.5 -1.5 1.5 0 2])
+%axis([-20 20 -20 20 0 35])
+axis([-1.5 1.5 -1.5 1.5 0 2])
 grid minor
 colormap jet
 c = colorbar;

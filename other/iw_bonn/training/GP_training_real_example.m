@@ -29,7 +29,7 @@ Y_ref = [];
 for i = 1:1
     for j = 1:1
         ground_truth_map = hue;
-        %ground_truth_map = grid_ave/0.77;
+        %ground_truth_map = grid_ave/0.77;0.
         X_ref = [X_ref; (i)*(dim_x*1.5)+reshape(mesh_x, numel(mesh_x), 1), (j)*(dim_x*1.5)+reshape(mesh_y, numel(mesh_y), 1)];
         Y_ref = [Y_ref; reshape(ground_truth_map,[],1)];
     end

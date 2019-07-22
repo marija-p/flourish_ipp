@@ -19,7 +19,7 @@ for height = planning_parameters.min_height: ...
     
     % Compute distance between points on a lattice plane,
     % assuming same discretisation in x- and y-dirs.
-    if (floor(sqrt(num_of_points)) == 1)
+    if (round(sqrt(num_of_points)) == 1)
         grid_x = map_parameters.dim_x / 2;
         grid_y = map_parameters.dim_y / 2;
     else   
