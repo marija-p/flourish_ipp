@@ -1,7 +1,7 @@
 %clear all; close all; clc;
 
 % If data already exists, want to append to it for the trials it contains.
-append_to_logger = 1;
+append_to_logger = 0;
 
 % Number of trials to run
 if (~append_to_logger)
@@ -35,7 +35,7 @@ use_coverage = 0; coverage_altitude = 8.66; coverage_vel = 0.78 * (200/280);
 
 %logger = struct;
 
-for i = 2:num_trials
+for i = 34:36
 
     if (~append_to_logger)
         t = i;
@@ -55,10 +55,10 @@ for i = 2:num_trials
         
         for j = 1:size(opt_methods,2)
             opt_params.opt_method = opt_methods{j};
-            rng(t*j, 'twister');
+            rng(t*(j+1), 'twister');
             [metrics, ~] = GP_iros(matlab_params, ...
                 planning_params, opt_params, map_params, ground_truth_map);
-            logger.(['trial', num2str(t)]).([opt_methods{j},'_05_05_1']) = metrics;
+            logger.(['trial', num2str(t)]).([opt_methods{j}, '_new']) = metrics;
         end
 
         if (use_rig)
@@ -74,6 +74,8 @@ for i = 2:num_trials
                 planning_params, map_params, coverage_altitude, coverage_vel, ground_truth_map);
             logger.(['trial', num2str(t)]).('coverage') = metrics;
         end
+       
+        disp(['Completed Trial ', num2str(t)]);
         
     catch
         
@@ -81,6 +83,6 @@ for i = 2:num_trials
         
     end
     
-    disp(['Completed Trial ', num2str(t)]);
+    save data.mat
     
 end

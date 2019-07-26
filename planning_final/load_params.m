@@ -45,9 +45,9 @@ planning_params.obj = 'rate';    % 'rate'/'exponential'
 opt_params.max_iters = 45;
 opt_params.opt_method = 'none'; % 'fmc'/cmaes'/'none'/'bo'
 % Covariances in each search dimension
-opt_params.cov_x = 0.5;
-opt_params.cov_y = 0.5;
-opt_params.cov_z = 1;
+opt_params.cov_x = 3;
+opt_params.cov_y = 3;
+opt_params.cov_z = 4;
 
 % Map resolution [m/cell]
 map_params.resolution = 0.75;
