@@ -1,10 +1,9 @@
 %clear all; close all; clc;
 
 % Number of trials to run
-num_trials = 1;
+num_trials = 30;
 
 % Spiral parameters
-spiral_radius = 7.5;
 spiral_height = 12.5;
 
 % Environment parameters
@@ -19,16 +18,22 @@ logger = struct;
 
 for t = 1:num_trials
     
-    rng(matlab_params.seed_num, 'twister');
+    logger.(['trial', num2str(t)]).num = t;
+    
+    rng(t, 'twister');
     
     % Generate (continuous) ground truth map.
     ground_truth_map = create_continuous_map(map_params.dim_x, ...
         map_params.dim_y, cluster_radius);
-    planning_params.max_vel = 3;
+    planning_params.max_vel = 0.9;
+    planning_params.max_acc = 3;
     
     [metrics, grid_map] = GP_spiral(matlab_params, ...
-        planning_params, map_params, spiral_radius, spiral_height, ground_truth_map);
+        planning_params, map_params, spiral_height, ground_truth_map);
     logger.(['trial', num2str(t)]).('spiral') = metrics;
-    logger.(['trial', num2str(t)]).num = t;
+    
+    %keyboard
     
 end
+
+save spiral.mat

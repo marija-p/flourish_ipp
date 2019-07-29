@@ -1,11 +1,15 @@
 file_path = '~\PhD\Submissions\asldoc-2017-iros-popovic\images\';
 
+%logger = rmfield(logger, 'trial31');
+%logger = rmfield(logger, 'trial32');
+%logger = rmfield(logger, 'trial33');
+
 %rescale_factor = 1;
 rescale_factor = 0.75;
 text_size = 10.5;
 
-do_plot = 0;
-do_print = 1;
+do_plot = 1;
+do_print = 0;
 show_legend = 1;
 
 paper_pos = [0, 0, 6, 4];
@@ -13,7 +17,7 @@ paper_pos = [0, 0, 6, 4];
 trials = fieldnames(logger);
 methods = fieldnames(logger.trial1);
 
-time_vector = 0:0.1:600;
+time_vector = 0:0.1:200;
 
 P_traces = zeros(length(methods)-1,length(time_vector));
 rmses = zeros(length(methods)-1,length(time_vector));
@@ -117,9 +121,9 @@ colours = [0.8500    0.3250    0.0980;
     0    0.4470    0.7410;
   %  0.9290    0.6940    0.1250;
  %   0.4940    0.1840    0.5560;
-    0.4660    0.6740    0.1880];
-  %   0.6350    0.0780    0.1840;
-   %  0.3010    0.7450    0.9330;
+    0.4660    0.6740    0.1880;
+     0.6350    0.0780    0.1840;
+     0.3010    0.7450    0.9330];
     % 0.1379    0.1379    0.0345];
  transparency = 0.3;
  
@@ -129,7 +133,7 @@ colours = [0.8500    0.3250    0.0980;
 if (do_plot)
         
     figure;
-    plot_ind = [2,5,6];
+    plot_ind = [2,5,6,7,11];
     
     %% Trace of P %%
     subplot(1,3,1)
@@ -139,9 +143,11 @@ if (do_plot)
         time_vector, mean_P_traces(2,:), SEM_P_traces(2,:)*ts, ... %   time_vector, mean_P_traces(3,:), SEM_P_traces(3,:)*ts, 
         time_vector, mean_P_traces(5,:), SEM_P_traces(5,:)*ts, ...
         time_vector, mean_P_traces(6,:), SEM_P_traces(6,:)*ts, ...
+        time_vector, mean_P_traces(7,:), SEM_P_traces(7,:)*ts, ...
+        time_vector, mean_P_traces(11,:), SEM_P_traces(11,:)*ts, ...
         'alpha', 'cmap', colours, 'transparency', transparency);
      
-    for i = 1:3
+    for i = 1:5
         P_trace = mean_P_traces(plot_ind(i),:);
         h(i) = plot(time_vector, P_trace, 'LineWidth', 1, 'Color', colours(i,:));
     end
@@ -179,9 +185,11 @@ if (do_plot)
         time_vector, mean_rmses(2,:), SEM_rmses(2,:)*ts, ... %time_vector, mean_rmses(3,:), SEM_rmses(3,:)*ts, ... 
         time_vector, mean_rmses(5,:), SEM_rmses(5,:)*ts, ...
         time_vector, mean_rmses(6,:), SEM_rmses(6,:)*ts, ...
+        time_vector, mean_rmses(7,:), SEM_rmses(7,:)*ts, ...
+        time_vector, mean_rmses(11,:), SEM_rmses(11,:)*ts, ...
         'alpha', 'cmap', colours, 'transparency', transparency);
      
-    for i = 1:3
+    for i = 1:5
         rmse = mean_rmses(plot_ind(i),:);
         h(i) = plot(time_vector, rmse, 'LineWidth', 1, 'Color', colours(i,:));
     end
@@ -216,9 +224,11 @@ if (do_plot)
         time_vector, mean_mlls(2,:), SEM_mlls(2,:)*ts, ... %time_vector, mean_mlls(3,:), SEM_mlls(3,:)*ts, ... 
         time_vector, mean_mlls(5,:), SEM_mlls(5,:)*ts, ...
         time_vector, mean_mlls(6,:), SEM_mlls(6,:)*ts, ...
+        time_vector, mean_mlls(7,:), SEM_mlls(7,:)*ts, ...
+        time_vector, mean_mlls(11,:), SEM_mlls(11,:)*ts, ...
         'alpha', 'cmap', colours, 'transparency', transparency);
      
-    for i = 1:3
+    for i = 1:5
         mll = mean_mlls(plot_ind(i),:);
         h(i) = plot(time_vector, mll, 'LineWidth', 1, 'Color', colours(i,:));
     end
@@ -258,7 +268,7 @@ if (do_plot)
     
         
     if (show_legend)
-        h_legend = legend(h, 'CMA-ES', 'RIG-tree', 'Coverage');
+        h_legend = legend(h, 'CMA-ES', 'RIG-tree', 'Coverage', 'Random', 'Spiral');
         set(h_legend, 'Location', 'SouthOutside');
         set(h_legend, 'orientation', 'horizontal')
         set(h_legend, 'box', 'off');

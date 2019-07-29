@@ -1,5 +1,5 @@
-function [metrics, grid_map] = GP_spiral(matlab_parameters, planning_parameters, ...t
-    map_parameters, spiral_radius, spiral_height, ground_truth_map)
+function [metrics, grid_map] = GP_spiral(matlab_parameters, planning_parameters, ...
+    map_parameters, spiral_height, ground_truth_map)
 % Main program for IROS2017 coverage planning benchmark.
 %
 % M Popovic 2017
@@ -7,7 +7,7 @@ function [metrics, grid_map] = GP_spiral(matlab_parameters, planning_parameters,
 
 % Initialize variables.
 
-matlab_parameters.visualize = 1;
+%matlab_parameters.visualize = 1;
 
 % Get map dimensions [cells].
 dim_x = map_parameters.dim_x;
@@ -75,16 +75,23 @@ end
 %% Spiral Coverage Planning %%
 % Create plan (deterministic).
 
-t = -pi/2:0.1:3*pi + pi/2;
-x = spiral_radius * sin(t);
-y = spiral_radius * cos(t);
+t = linspace(0,4*pi,50);
+x = t .* sin(t); 
+y = t .* cos(t);
 z = 4.25 + spiral_height/(2*pi) * t;
+z = max(z) - z + 1;
 path = [x;y;z];
 
 %keyboard
 
 %% Execution %%
 metrics = initialize_metrics();
+metrics.times = [metrics.times; 0];
+metrics.P_traces = [metrics.P_traces; trace(grid_map.P)];
+metrics.rmses = [metrics.rmses; compute_rmse(grid_map.m, ground_truth_map)];
+metrics.wrmses = [metrics.wrmses; compute_wrmse(grid_map.m, ground_truth_map)];
+metrics.mlls = [metrics.mlls; compute_mll(grid_map, ground_truth_map)];
+metrics.wmlls = [metrics.wmlls; compute_wmll(grid_map, ground_truth_map)];
 
 % Create polynomial trajectory through the control points.
 trajectory = ...
@@ -109,7 +116,7 @@ Y_sigma = sqrt(diag(grid_map.P)');
 P_post = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
 
 metrics.points_meas = points_meas;
-metrics.times = times_meas';
+metrics.times = [metrics.times; times_meas'];
 metrics.path_travelled = path;
 disp(['Total time taken for spiral coverage: ', ...
     num2str(get_trajectory_total_time(trajectory))]);

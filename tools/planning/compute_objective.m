@@ -44,15 +44,15 @@ if (any(points_meas(:,1) > dim_x_env/2) || ...
         any(points_meas(:,2) < -dim_y_env/2) || ...
         any(points_meas(:,3) < planning_parameters.min_height) || ...
         any(points_meas(:,3) > planning_parameters.max_height))
-    obj = Inf;
+    obj = 100;
     return;
 end
 
 % Predict measurements along the path.
 for i = 1:size(points_meas,1)
     try
-    grid_map = predict_map_update(points_meas(i,:), grid_map, ...
-        map_parameters, planning_parameters);
+        grid_map = predict_map_update(points_meas(i,:), grid_map, ...
+            map_parameters, planning_parameters);
     catch
         obj = Inf;
         return;

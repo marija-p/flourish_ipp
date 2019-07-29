@@ -29,9 +29,9 @@ dim_y_env = 30;
 planning_params.time_budget = 200;  % [s]
 
 %opt_methods = {'none', 'cmaes', 'fmc', 'bo'};
-opt_methods = {'cmaes'};
-use_rig = 0; subtree_iters = 500;
-use_coverage = 0; coverage_altitude = 8.66; coverage_vel = 0.78 * (200/280);
+opt_methods = {};
+use_rig = 1; subtree_iters = 500;
+use_coverage = 1; coverage_altitude = 8.66; coverage_vel = 0.78 * (200/200);
 
 %logger = struct;
 
@@ -51,15 +51,7 @@ for i = 1:num_trials
     ground_truth_map = create_continuous_map(map_params.dim_x, ...
         map_params.dim_y, cluster_radius);
     
- %   try
-        
-        for j = 1:size(opt_methods,2)
-            opt_params.opt_method = opt_methods{j};
-            rng(t, 'twister');
-            [metrics, ~] = GP_iros(matlab_params, ...
-                planning_params, opt_params, map_params, ground_truth_map);
-            logger.(['trial', num2str(t)]).([opt_methods{j}, '_no_init']) = metrics;
-        end
+    try
         
         if (use_rig)
             rng(t, 'twister');
@@ -77,12 +69,12 @@ for i = 1:num_trials
         
         disp(['Completed Trial ', num2str(t)]);
         
- %   catch
+    catch
         
         disp(['Failed Trial ', num2str(t)]);
         
- %   end
+    end
     
-    save data.mat
+    save rig_coverage.mat
     
 end

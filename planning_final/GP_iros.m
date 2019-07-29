@@ -12,6 +12,9 @@ dim_y = map_params.dim_y;
 % Set prediction map dimensions [cells]
 predict_dim_x = dim_x*1;
 predict_dim_y = dim_y*1;
+% Environment dimensions [m]
+dim_x_env = map_params.dim_x*map_params.resolution;
+dim_y_env = map_params.dim_y*map_params.resolution;
 
 % Gaussian Process
 cov_func = {'covMaterniso', 3};
@@ -96,15 +99,20 @@ while (true)
     %% Planning %%
     
     %% STEP 1. Grid search on the lattice.
-    tic;
+   % tic;
     
     path = search_lattice(point_prev, lattice, grid_map, map_params, ...
         planning_params);
     obj = compute_objective(path, grid_map, map_params, planning_params);
     disp(['Objective before optimization: ', num2str(obj)]);
+    % Hack for dumb initialization.
+    path_x = -dim_x_env/2 + dim_x_env.*rand(5,1);
+    path_y = -dim_y_env/2 + dim_y_env.*rand(5,1);
+    path_z = planning_params.min_height + ...
+       (planning_params.max_height - planning_params.min_height).*rand(5,1);
+    path = [path_x,path_y,path_z];
     
-    disp(toc);
-    %keyboard
+   % disp(toc);
     
     %% STEP 2. Path optimization.
     if (strcmp(opt_params.opt_method, 'cmaes'))
@@ -117,6 +125,9 @@ while (true)
             planning_params);
     elseif (strcmp(opt_params.opt_method, 'bo'))
         path_optimized = optimize_with_bo(path, grid_map, map_params, ...
+            planning_params);
+    elseif (strcmp(opt_params.opt_method, 'sa'))
+        path_optimized = optimize_with_sa(path, grid_map, map_params, ...
             planning_params);
     else
         path_optimized = path;
