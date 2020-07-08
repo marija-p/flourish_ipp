@@ -2,8 +2,8 @@
 
 New Informative Path Planning for Project 'Flourish' based on continuous maps and Gaussian Processes.
 
-* Teresa Vidal-Calleja
 * Marija Popovic
+* Teresa Vidal-Calleja
 
 ***
 ## Folders in this repo:
