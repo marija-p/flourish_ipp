@@ -31,3 +31,6 @@
 data/
 *.mat
 *.csv
+
+# pycharm files
+.idea/

@@ -1,4 +1,4 @@
-function [ground_truth_map] = create_continuous_map(dim_x, dim_y, cluster_radius)
+function [ground_truth_map] = create_continuous_map(dim_x, dim_y, cluster_radius, visualize)
 % Creates 2D 'farmland' environment with random distribution of % veg.
 % cover.
 %
@@ -12,7 +12,9 @@ function [ground_truth_map] = create_continuous_map(dim_x, dim_y, cluster_radius
 % Adapted from:
 % https://people.smp.uq.edu.au/DirkKroese/ps/MCSpatial.pdf
 
-visualize = 0;
+if ~exist('visualize','var')
+    visualize = 0;
+end
 
 % Vegetation cover range (%).
 % veg_cover ∈ [veg_cover_min, veg_cover_max]
