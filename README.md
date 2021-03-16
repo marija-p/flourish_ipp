@@ -22,3 +22,15 @@ New Informative Path Planning for Project 'Flourish' based on continuous maps an
 * `planning_final`: Final programs of the implementation.
 * `evals`: Benchmarks, simulation trial scripts, simulation results,
 * `journal`: Stuff and investigations specific to journal. WIP.
+
+
+## Example
+
+To run the final planning program, execute the following steps in your MATLAB command window:
+
+```commandline
+addpath(genpath('/path/to/your/repo/'))
+[matlab_params, planning_params, opt_params, map_params] = load_params(50*0.75, 50*0.75, true)
+ground_truth_map = create_continuous_map(50, 50, 2, true)
+[metrics, grid_map] = GP_iros(matlab_params, planning_params, opt_params, map_params, ground_truth_map)
+```
