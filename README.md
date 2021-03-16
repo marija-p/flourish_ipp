@@ -24,7 +24,7 @@ New Informative Path Planning for Project 'Flourish' based on continuous maps an
 * `journal`: Stuff and investigations specific to journal. WIP.
 
 
-## Example
+## Examples
 
 To run the final planning program, execute the following steps in your MATLAB command window:
 
@@ -34,3 +34,5 @@ addpath(genpath('/path/to/your/repo/'))
 ground_truth_map = create_continuous_map(50, 50, 2, true)
 [metrics, grid_map] = GP_iros(matlab_params, planning_params, opt_params, map_params, ground_truth_map)
 ```
+
+More mapping and planning example scenarios can be executed by running the programs in `planning_examples` and `mapping_examples`respectively.
