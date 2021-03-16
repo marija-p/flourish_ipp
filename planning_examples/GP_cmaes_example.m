@@ -26,6 +26,12 @@ planning_parameters.lambda = 0.001;
 % Frequency at which to take measurements along a path [Hz]
 planning_parameters.measurement_frequency = 0.2;
 
+% Whether to use the threshold value for active planning
+planning_parameters.use_threshold = 0;
+
+% Objective function for planning
+planning_parameters.obj = 'rate';    % 'rate'/'exponential'
+
 % Number of control points for a polynomial (start point fixed)
 optimization_parameters.control_points = 5;
 
@@ -61,7 +67,7 @@ hyp.lik =  0.35;
 % First measurement location
 point_init = [0, 0, 6];
 % Multi-resolution lattice
-lattice = create_lattice(map_parameters, planning_parameters, 25, 4);
+lattice = create_lattice(map_parameters, planning_parameters);
  
 %% Data %%
 % Generate (continuous) ground truth map.
