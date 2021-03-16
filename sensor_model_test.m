@@ -41,7 +41,7 @@ if (do_print)
     fig.PaperPositionMode = 'manual';
    % print(fig, '-depscv ', [file_path, 'sensor_model.eps']);
    set(fig,'color','w');
-   export_fig sensor_model.eps -painters
+   export_fig evals/plots/sensor_model.eps -painters
 end
 
 % close all;

@@ -56,7 +56,7 @@ hyp.lik =  0.35;
 % Constant lawnmower altitude
 coverage_altitude = 8.66;
 % Multi-resolution lattice
-lattice = create_lattice(map_parameters, planning_parameters, 25, 4);
+lattice = create_lattice(map_parameters, planning_parameters);
  
 %% Data %%
 % Generate (continuous) ground truth map.

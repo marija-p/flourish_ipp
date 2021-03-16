@@ -21,6 +21,11 @@ planning_parameters.sensor_fov_angle_x = 60;
 planning_parameters.sensor_fov_angle_y = 60;
 planning_parameters.min_height = 1;
 planning_parameters.max_height = 26;
+planning_parameters.max_vel = 5;        % [m/s]
+planning_parameters.max_acc = 3;        % [m/s^2]
+
+% Frequency at which to take measurements along a path [Hz]
+planning_parameters.measurement_frequency = 0.15;
 
 % Map resolution [m/cell]
 map_parameters.resolution = 0.75;
@@ -53,7 +58,7 @@ hyp.lik =  0.35;
 % First measurement location
 pos_env_init = [0, 0, 6];
 % Multi-resolution lattice
-lattice = create_lattice(map_parameters, planning_parameters, 25, 4);
+lattice = create_lattice(map_parameters, planning_parameters);
 % Number of measurements to take (including initial one)
 num_of_measurements = 20;
  
@@ -250,6 +255,6 @@ end
 if (visualize_path)
     
     figure;
-    plot_path(path);
+    plot_path(path, planning_parameters);
     
 end

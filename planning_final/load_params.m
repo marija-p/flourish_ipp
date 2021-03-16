@@ -1,10 +1,14 @@
 function [matlab_params, planning_params, ...
-    opt_params, map_params] = load_params(dim_x_env, dim_y_env)
+    opt_params, map_params] = load_params(dim_x_env, dim_y_env, visualize)
 % Loads default parameters for IROS2017 IPP algorithms - AURO19.
 
 % Random number generator
 matlab_params.seed_num = 2;
-matlab_params.visualize = 0;
+if ~exist('visualize','var')
+    matlab_params.visualize = 0;
+else
+    matlab_params.visualize = visualize;
+end
 
 % Coefficients for the exponential height-dependant sensor variance model
 % var = A * (1 - e^(-B * height))
@@ -57,3 +61,5 @@ map_params.dim_y = dim_y_env/map_params.resolution;
 % Position of map in the environment [m]
 map_params.position_x = -dim_x_env / 2;
 map_params.position_y = -dim_y_env / 2;
+% if false, map lattice is dynamically created dependent on map dimensions
+map_params.manual_lattice = 0;
