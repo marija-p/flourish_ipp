@@ -3,7 +3,7 @@ function [lattice_env] = create_lattice(map_parameters, planning_parameters)
 
 lattice = [];
 
-manual_lattice = 1;
+manual_lattice = map_parameters.manual_lattice;
 
 if (~manual_lattice)
     

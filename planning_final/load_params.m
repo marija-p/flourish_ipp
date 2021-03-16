@@ -61,3 +61,5 @@ map_params.dim_y = dim_y_env/map_params.resolution;
 % Position of map in the environment [m]
 map_params.position_x = -dim_x_env / 2;
 map_params.position_y = -dim_y_env / 2;
+% if false, map lattice is dynamically created dependent on map dimensions
+map_params.manual_lattice = 0;
