@@ -8,6 +8,11 @@ cluster_radius = 3;
 dim_x_env = 30;
 dim_y_env = 30;
 
+% Coefficients for the exponential height-dependant sensor variance model
+% var = A * (1 - e^(-B * height))
+planning_parameters.sensor_coeff_A = 0.05;
+planning_parameters.sensor_coeff_B = 0.2;
+
 % Camera fields of view (FoV)
 planning_parameters.sensor_fov_angle_x = 60;
 planning_parameters.sensor_fov_angle_y = 60;
